@@ -1,6 +1,18 @@
 // Hand-written to match supabase/migrations/0001_init.sql.
 // Regenerate with `supabase gen types typescript` once a real project exists,
 // and diff against this file rather than blindly overwriting it.
+//
+// The `Database` type below is NOT currently passed as a generic to any
+// Supabase client (see lib/supabase/{client,server,admin}.ts). Doing so broke
+// type inference on .insert()/.eq().single() chains against this project's
+// installed @supabase/supabase-js@2.112 + typescript@5.9 combination — traced
+// to a repro as small as a 2-table schema, so it's a version-specific
+// inference issue, not a mistake in this schema's shape. Clients are
+// untyped (implicit `any` schema) for now; call sites in lib/ type their own
+// function signatures against the interfaces below instead. Revisit once a
+// real project exists and `supabase gen types` output can be diffed against
+// this — if generated types hit the same issue, it's worth a supabase-js
+// version bump or an upstream issue, not more time spent here.
 
 export type CallStatus = "not_booked" | "booked" | "completed";
 export type ProgressStatus = "not_started" | "in_progress" | "complete";
@@ -89,18 +101,30 @@ export interface Testimonial {
   active: boolean;
 }
 
+// `Relationships: []` and the empty `Views`/`Functions` maps are boilerplate
+// required to structurally match supabase-js's GenericSchema/GenericTable —
+// without them every query falls back to `never` row types.
+type Table<Row, RequiredInsertKeys extends keyof Row> = {
+  Row: Row;
+  Insert: Partial<Row> & Pick<Row, RequiredInsertKeys>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
+
 export interface Database {
   public: {
     Tables: {
-      students: { Row: Student; Insert: Partial<Student> & Pick<Student, "id" | "email">; Update: Partial<Student> };
-      modules: { Row: Module; Insert: Partial<Module> & Pick<Module, "title" | "dubb_url" | "duration_seconds">; Update: Partial<Module> };
-      resources: { Row: Resource; Insert: Partial<Resource> & Pick<Resource, "module_id" | "title" | "type" | "file_url">; Update: Partial<Resource> };
-      progress: { Row: Progress; Insert: Partial<Progress> & Pick<Progress, "student_id" | "module_id">; Update: Partial<Progress> };
-      access_grants: { Row: AccessGrant; Insert: Partial<AccessGrant> & Pick<AccessGrant, "email" | "source">; Update: Partial<AccessGrant> };
-      orders: { Row: Order; Insert: Partial<Order> & Pick<Order, "stripe_session_id" | "email" | "amount_cents">; Update: Partial<Order> };
-      bonuses: { Row: Bonus; Insert: Partial<Bonus> & Pick<Bonus, "title">; Update: Partial<Bonus> };
-      student_bonus_status: { Row: StudentBonusStatus; Insert: Partial<StudentBonusStatus> & Pick<StudentBonusStatus, "student_email" | "bonus_id">; Update: Partial<StudentBonusStatus> };
-      testimonials: { Row: Testimonial; Insert: Partial<Testimonial> & Pick<Testimonial, "client_name" | "quote">; Update: Partial<Testimonial> };
+      students: Table<Student, "id" | "email">;
+      modules: Table<Module, "title" | "dubb_url" | "duration_seconds">;
+      resources: Table<Resource, "module_id" | "title" | "type" | "file_url">;
+      progress: Table<Progress, "student_id" | "module_id">;
+      access_grants: Table<AccessGrant, "email" | "source">;
+      orders: Table<Order, "stripe_session_id" | "email" | "amount_cents">;
+      bonuses: Table<Bonus, "title">;
+      student_bonus_status: Table<StudentBonusStatus, "student_email" | "bonus_id">;
+      testimonials: Table<Testimonial, "client_name" | "quote">;
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }
