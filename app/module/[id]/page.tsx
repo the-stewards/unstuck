@@ -24,6 +24,7 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
   }
 
   const currentIndex = allModules.findIndex((m) => m.id === id);
+  const prevModule = currentIndex > 0 ? allModules[currentIndex - 1] : undefined;
   const nextModule = currentIndex >= 0 ? allModules[currentIndex + 1] : undefined;
   const status = progress?.status ?? "not_started";
 
@@ -71,7 +72,17 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           </div>
         )}
 
-        <div className="mt-10 flex justify-end">
+        <div className="mt-10 flex items-center justify-between">
+          {prevModule ? (
+            <Link
+              href={`/module/${prevModule.id}`}
+              className="border border-foreground px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent"
+            >
+              ← Previous module
+            </Link>
+          ) : (
+            <span />
+          )}
           {nextModule ? (
             <Link
               href={`/module/${nextModule.id}`}
