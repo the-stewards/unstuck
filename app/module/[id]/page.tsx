@@ -31,16 +31,25 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
     <div className="flex flex-1 flex-col">
       <AppHeader email={user.email} />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-        <Link href="/dashboard" className="text-sm text-muted hover:text-foreground">
+        <Link
+          href="/dashboard"
+          className="font-heading text-base font-bold uppercase tracking-wide text-muted-light hover:text-accent"
+        >
           ← Back to library
         </Link>
 
-        <h1 className="mt-3 text-2xl font-semibold text-foreground">{courseModule.title}</h1>
+        <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
+          {courseModule.title}
+        </h1>
         {courseModule.description && (
-          <p className="mt-2 text-sm text-muted">{courseModule.description}</p>
+          <p className="mt-2 font-body text-lg font-light text-muted">
+            {courseModule.description}
+          </p>
         )}
         {status === "complete" && (
-          <p className="mt-2 text-sm text-accent">✓ Complete</p>
+          <p className="mt-2 font-heading text-base font-bold uppercase tracking-wide text-accent">
+            ✓ Complete
+          </p>
         )}
 
         <div className="mt-6">
@@ -66,14 +75,14 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           {nextModule ? (
             <Link
               href={`/module/${nextModule.id}`}
-              className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              className="bg-accent px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90"
             >
               Next module →
             </Link>
           ) : (
             <Link
               href="/dashboard"
-              className="rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent"
+              className="border border-foreground px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent"
             >
               Back to library
             </Link>

@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow_Condensed, Frank_Ruhl_Libre } from "next/font/google";
 import { AuthHashHandler } from "@/components/AuthHashHandler";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// The Steward Design Schema's two-font system: Barlow Condensed is the
+// authority font (headings, labels, buttons — always 700), Frank Ruhl Libre
+// is the humanity font (body copy — 300/400/500, never bold).
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  variable: "--font-frank-ruhl-libre",
+  weight: ["300", "400", "500"],
   subsets: ["latin"],
 });
 
@@ -22,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${barlowCondensed.variable} ${frankRuhlLibre.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <AuthHashHandler />

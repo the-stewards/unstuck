@@ -10,7 +10,7 @@ interface DubbEmbedProps {
 // time-elapsed heuristic in the parent page, not anything from this embed.
 export function DubbEmbed({ dubbUrl, title }: DubbEmbedProps) {
   return (
-    <div className="relative w-full overflow-hidden rounded-lg" style={{ paddingBottom: "56.25%" }}>
+    <div className="relative w-full overflow-hidden" style={{ paddingBottom: "56.25%" }}>
       <iframe
         className="absolute left-0 top-0 h-full w-full"
         src={dubbUrl}

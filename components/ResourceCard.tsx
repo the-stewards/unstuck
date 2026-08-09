@@ -15,15 +15,19 @@ export function ResourceCard({ resource }: { resource: Resource }) {
       href={resource.file_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-5 py-4 transition-colors hover:border-accent"
+      className="flex items-center justify-between gap-4 border-t-[3px] border-foreground bg-card px-5 py-4 transition-colors hover:border-accent"
     >
       <div>
-        <span className="text-xs uppercase tracking-wide text-accent">
+        <span className="font-heading text-base font-bold uppercase tracking-[0.3em] text-accent">
           {TYPE_LABEL[resource.type]}
         </span>
-        <h4 className="mt-1 font-medium text-foreground">{resource.title}</h4>
+        <h4 className="mt-1 font-heading text-lg font-bold uppercase text-foreground">
+          {resource.title}
+        </h4>
       </div>
-      <span className="shrink-0 text-sm text-muted">Download</span>
+      <span className="shrink-0 font-heading text-base font-bold uppercase tracking-wide text-muted-light">
+        Download
+      </span>
     </a>
   );
 }

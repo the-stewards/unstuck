@@ -3,39 +3,68 @@ import type { CallStatus } from "@/lib/types";
 
 const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || "#";
 
-const COPY: Record<CallStatus, { heading: string; body: string; cta: string | null }> = {
+interface CopyEntry {
+  label: string;
+  headingPre: string;
+  headingOrange: string;
+  headingPost: string;
+  body: string;
+  cta: string | null;
+}
+
+const COPY: Record<CallStatus, CopyEntry> = {
   not_booked: {
-    heading: "Book a call to reactivate your bonuses",
+    label: "Next Step",
+    headingPre: "",
+    headingOrange: "Reactivate",
+    headingPost: " Your Bonuses",
     body: "The bonuses you missed are still gone — unless you get on a call.",
-    cta: "Book a call",
+    cta: "Book a Call",
   },
   booked: {
-    heading: "You're booked — see you on the call.",
+    label: "You're In",
+    headingPre: "You're ",
+    headingOrange: "Booked",
+    headingPost: "",
     body: "We've got you down. No need to do anything else here.",
     cta: null,
   },
   completed: {
-    heading: "Great catching up on the call.",
+    label: "All Set",
+    headingPre: "Thanks For ",
+    headingOrange: "Calling",
+    headingPost: " In",
     body: "Reach out any time if something's still unclear.",
     cta: null,
   },
 };
 
+// Banner block per the schema: charcoal fill, orange left border, section
+// label, H2 with one orange word, deck copy, CTA button.
 export function CtaBanner({ callStatus }: { callStatus: CallStatus }) {
   const copy = COPY[callStatus];
 
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-accent bg-card px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col items-start gap-4 border-l-4 border-accent bg-band-bg px-6 py-6 sm:px-8 sm:py-8">
       <div>
-        <p className="font-medium text-foreground">{copy.heading}</p>
-        <p className="mt-1 text-sm text-muted">{copy.body}</p>
+        <p className="font-heading text-base font-bold uppercase tracking-[0.4em] text-accent">
+          {copy.label}
+        </p>
+        <h2 className="mt-2 font-heading text-2xl font-bold uppercase leading-tight text-band-text sm:text-3xl">
+          {copy.headingPre}
+          <span className="text-accent">{copy.headingOrange}</span>
+          {copy.headingPost}
+        </h2>
+        <p className="mt-3 max-w-md font-body text-lg font-light text-band-text/70">
+          {copy.body}
+        </p>
       </div>
       {copy.cta && (
         <Link
           href={BOOKING_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          className="shrink-0 bg-accent px-8 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90"
         >
           {copy.cta}
         </Link>

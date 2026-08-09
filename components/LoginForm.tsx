@@ -25,13 +25,15 @@ export function LoginForm() {
 
   if (result?.success) {
     return (
-      <div className="mt-6 flex flex-col gap-3 rounded-md border border-accent bg-card px-4 py-4 text-sm">
-        <p className="text-foreground">Check your email — your login link is on its way to {email}.</p>
+      <div className="mt-6 flex flex-col gap-3 border-l-4 border-accent bg-card px-4 py-4">
+        <p className="font-body text-base text-foreground">
+          Check your email — your login link is on its way to {email}.
+        </p>
         <button
           type="button"
           onClick={resend}
           disabled={isPending}
-          className="self-start text-accent underline disabled:opacity-50"
+          className="self-start font-heading text-base font-bold uppercase tracking-wide text-accent hover:underline disabled:opacity-50"
         >
           {isPending ? "Resending…" : "Didn't get it? Resend"}
         </button>
@@ -46,16 +48,16 @@ export function LoginForm() {
         name="email"
         placeholder="you@email.com"
         required
-        className="rounded-md border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+        className="border border-border bg-card px-4 py-3 font-body text-base text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-md bg-accent px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="bg-accent px-4 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {isPending ? "Sending…" : "Send my login link"}
       </button>
-      {result?.error && <p className="text-sm text-red-400">{result.error}</p>}
+      {result?.error && <p className="font-body text-base text-red-700">{result.error}</p>}
     </form>
   );
 }

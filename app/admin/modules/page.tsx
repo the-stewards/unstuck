@@ -13,11 +13,16 @@ export default async function AdminModulesPage() {
     <div className="flex flex-1 flex-col">
       <AppHeader email={user.email} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <Link href="/admin" className="text-sm text-muted hover:text-foreground">
+        <Link
+          href="/admin"
+          className="font-heading text-base font-bold uppercase tracking-wide text-muted-light hover:text-accent"
+        >
           ← Back to students
         </Link>
 
-        <h1 className="mt-3 text-2xl font-semibold text-foreground">Modules</h1>
+        <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
+          Modules
+        </h1>
 
         <div className="mt-6 flex flex-col gap-8">
           {modules.map((courseModule) => (
@@ -25,7 +30,9 @@ export default async function AdminModulesPage() {
               <ModuleForm module={courseModule} />
 
               <div className="ml-4 mt-3 flex flex-col gap-2 border-l border-border pl-4">
-                <p className="text-xs uppercase tracking-wide text-muted">Resources</p>
+                <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-accent">
+                  Resources
+                </p>
                 {courseModule.resources.map((resource) => (
                   <ResourceForm
                     key={resource.id}
@@ -40,7 +47,9 @@ export default async function AdminModulesPage() {
         </div>
 
         <div className="mt-10">
-          <p className="mb-2 text-sm font-medium text-foreground">Add a module</p>
+          <p className="mb-2 font-heading text-base font-bold uppercase tracking-wide text-foreground">
+            Add a module
+          </p>
           <ModuleForm />
         </div>
       </main>

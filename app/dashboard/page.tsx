@@ -29,7 +29,9 @@ export default async function DashboardPage() {
     <div className="flex flex-1 flex-col">
       <AppHeader email={user.email} />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-        <h1 className="text-2xl font-semibold text-foreground">Your library</h1>
+        <h1 className="font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
+          Your <span className="text-accent">Library</span>
+        </h1>
 
         <div className="mt-6">
           <ProgressBar percent={courseProgress.percent} label="Course progress" />
@@ -46,7 +48,7 @@ export default async function DashboardPage() {
             />
           ))}
           {modules.length === 0 && (
-            <p className="text-sm text-muted">No modules published yet.</p>
+            <p className="font-body text-base text-muted">No modules published yet.</p>
           )}
         </div>
 
@@ -56,7 +58,9 @@ export default async function DashboardPage() {
 
         {bonuses.length > 0 && (
           <section className="mt-10">
-            <h2 className="text-lg font-medium text-foreground">Your bonuses</h2>
+            <h2 className="font-heading text-2xl font-bold uppercase leading-none tracking-tight text-foreground">
+              Your <span className="text-accent">Bonuses</span>
+            </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {bonuses.map((bonus) => (
                 <BonusLock
@@ -71,7 +75,9 @@ export default async function DashboardPage() {
 
         {testimonials.length > 0 && (
           <section className="mt-10">
-            <h2 className="text-lg font-medium text-foreground">What other students say</h2>
+            <h2 className="font-heading text-2xl font-bold uppercase leading-none tracking-tight text-foreground">
+              What Students <span className="text-accent">Say</span>
+            </h2>
             <div className="mt-4">
               <TestimonialBlock testimonials={testimonials} />
             </div>

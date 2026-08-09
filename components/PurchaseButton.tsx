@@ -36,16 +36,16 @@ export function PurchaseButton({ initialEmail = "" }: { initialEmail?: string })
         onChange={(event) => setEmail(event.target.value)}
         placeholder="you@email.com"
         required
-        className="rounded-md border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+        className="border border-border bg-card px-4 py-3 font-body text-base text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-accent px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full bg-accent px-4 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {isPending ? "Redirecting…" : "Get instant access — $47"}
       </button>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="font-body text-base text-red-700">{error}</p>}
     </form>
   );
 }

@@ -23,7 +23,7 @@ export function CallStatusSelect({ email, status }: { email: string; status: Cal
       value={value}
       onChange={handleChange}
       disabled={isPending}
-      className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground focus:border-accent focus:outline-none disabled:opacity-50"
+      className="border border-border bg-background px-2 py-1 font-body text-base text-foreground focus:border-accent focus:outline-none disabled:opacity-50"
     >
       {OPTIONS.map((option) => (
         <option key={option} value={option}>

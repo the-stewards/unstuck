@@ -6,6 +6,8 @@ import { upsertBonus, deleteBonus } from "@/app/actions/content";
 import type { Bonus } from "@/lib/types";
 
 const EMPTY = { title: "", description: "", valueProp: "", displayOrder: 0 };
+const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
+const INPUT = "border border-border bg-background px-3 py-2 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
 export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
   const router = useRouter();
@@ -58,52 +60,43 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-4">
+    <form onSubmit={handleSubmit} className="border border-border bg-card p-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label className={LABEL}>
           Title
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
-          />
+          <input value={title} onChange={(event) => setTitle(event.target.value)} required className={INPUT} />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label className={LABEL}>
           Order
           <input
             type="number"
             value={displayOrder}
             onChange={(event) => setDisplayOrder(Number(event.target.value))}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+            className={INPUT}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted sm:col-span-2">
+        <label className={`${LABEL} sm:col-span-2`}>
           Description
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={2}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+            className={INPUT}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted sm:col-span-2">
+        <label className={`${LABEL} sm:col-span-2`}>
           Value prop (shown on the lock/reactivate card)
-          <input
-            value={valueProp}
-            onChange={(event) => setValueProp(event.target.value)}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
-          />
+          <input value={valueProp} onChange={(event) => setValueProp(event.target.value)} className={INPUT} />
         </label>
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-3 font-body text-base text-red-700">{error}</p>}
 
       <div className="mt-3 flex items-center gap-4">
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="bg-accent px-4 py-2 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {existingBonus ? "Save" : "Add bonus"}
         </button>
@@ -112,7 +105,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
             type="button"
             onClick={handleDelete}
             disabled={isPending}
-            className="text-sm text-red-400 hover:underline disabled:opacity-50"
+            className="font-heading text-base font-bold uppercase tracking-wide text-red-700 hover:underline disabled:opacity-50"
           >
             Delete
           </button>

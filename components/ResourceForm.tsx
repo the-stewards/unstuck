@@ -7,6 +7,8 @@ import type { Resource, ResourceType } from "@/lib/types";
 
 const TYPES: ResourceType[] = ["checklist", "toolkit", "guide", "script"];
 const EMPTY = { title: "", type: "checklist" as ResourceType, fileUrl: "", displayOrder: 0 };
+const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
+const INPUT = "border border-border bg-card px-2 py-1 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
 export function ResourceForm({
   moduleId,
@@ -66,23 +68,14 @@ export function ResourceForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-background px-3 py-2">
-      <label className="flex flex-col gap-1 text-xs text-muted">
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2 border border-border bg-background px-3 py-2">
+      <label className={LABEL}>
         Title
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          required
-          className="w-40 rounded border border-border bg-card px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-        />
+        <input value={title} onChange={(event) => setTitle(event.target.value)} required className={`w-40 ${INPUT}`} />
       </label>
-      <label className="flex flex-col gap-1 text-xs text-muted">
+      <label className={LABEL}>
         Type
-        <select
-          value={type}
-          onChange={(event) => setType(event.target.value as ResourceType)}
-          className="rounded border border-border bg-card px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-        >
+        <select value={type} onChange={(event) => setType(event.target.value as ResourceType)} className={INPUT}>
           {TYPES.map((option) => (
             <option key={option} value={option}>
               {option}
@@ -90,28 +83,28 @@ export function ResourceForm({
           ))}
         </select>
       </label>
-      <label className="flex flex-1 flex-col gap-1 text-xs text-muted">
+      <label className={`flex-1 ${LABEL}`}>
         File URL
         <input
           value={fileUrl}
           onChange={(event) => setFileUrl(event.target.value)}
           required
-          className="w-full min-w-40 rounded border border-border bg-card px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
+          className={`w-full min-w-40 ${INPUT}`}
         />
       </label>
-      <label className="flex flex-col gap-1 text-xs text-muted">
+      <label className={LABEL}>
         Order
         <input
           type="number"
           value={displayOrder}
           onChange={(event) => setDisplayOrder(Number(event.target.value))}
-          className="w-16 rounded border border-border bg-card px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
+          className={`w-16 ${INPUT}`}
         />
       </label>
       <button
         type="submit"
         disabled={isPending}
-        className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="bg-accent px-3 py-1.5 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {existingResource ? "Save" : "Add"}
       </button>
@@ -120,12 +113,12 @@ export function ResourceForm({
           type="button"
           onClick={handleDelete}
           disabled={isPending}
-          className="text-xs text-red-400 hover:underline disabled:opacity-50"
+          className="font-heading text-base font-bold uppercase tracking-wide text-red-700 hover:underline disabled:opacity-50"
         >
           Delete
         </button>
       )}
-      {error && <p className="w-full text-xs text-red-400">{error}</p>}
+      {error && <p className="w-full font-body text-base text-red-700">{error}</p>}
     </form>
   );
 }
