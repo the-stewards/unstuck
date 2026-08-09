@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { DubbEmbed } from "@/components/DubbEmbed";
 import { ResourceCard } from "@/components/ResourceCard";
 import { ProgressTracker } from "@/components/ProgressTracker";
+import { MarkCompleteButton } from "@/components/MarkCompleteButton";
 
 export default async function ModulePage({ params }: PageProps<"/module/[id]">) {
   const { id } = await params;
@@ -83,20 +84,28 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           ) : (
             <span />
           )}
-          {nextModule ? (
-            <Link
-              href={`/module/${nextModule.id}`}
-              className="bg-accent px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90"
-            >
-              Next module →
-            </Link>
+          {status === "complete" ? (
+            nextModule ? (
+              <Link
+                href={`/module/${nextModule.id}`}
+                className="bg-accent px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90"
+              >
+                Next module →
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="border border-foreground px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent"
+              >
+                Back to library
+              </Link>
+            )
           ) : (
-            <Link
-              href="/dashboard"
-              className="border border-foreground px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent"
-            >
-              Back to library
-            </Link>
+            <MarkCompleteButton
+              moduleId={id}
+              nextHref={nextModule ? `/module/${nextModule.id}` : "/dashboard"}
+              label={nextModule ? "Mark Complete / Next Video →" : "Mark Complete"}
+            />
           )}
         </div>
       </main>

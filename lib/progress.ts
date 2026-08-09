@@ -2,27 +2,19 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { ProgressStatus } from "@/lib/types";
 
-// v1 completion heuristic (spec's "Option B"): a module counts as watched
-// once tracked active time reaches this fraction of its known duration. No
-// confirmed Dubb completion-event API exists yet — see build-plan-lms.md.
-const COMPLETE_THRESHOLD = 0.95;
-
-export function computeStatus(
-  watchPositionSeconds: number,
-  durationSeconds: number
-): ProgressStatus {
-  if (watchPositionSeconds <= 0) return "not_started";
-  if (durationSeconds > 0 && watchPositionSeconds >= durationSeconds * COMPLETE_THRESHOLD) {
-    return "complete";
-  }
-  return "in_progress";
+// Completion is explicit (student clicks "Mark Complete"), not inferred from
+// watch time — Dubb exposes no postMessage/JS completion-event API, and a
+// duration-threshold heuristic silently broke for any module missing a
+// duration_seconds value. Passive tracking still records in_progress so the
+// dashboard can show partial engagement.
+export function computeStatus(watchPositionSeconds: number): ProgressStatus {
+  return watchPositionSeconds > 0 ? "in_progress" : "not_started";
 }
 
 export async function upsertProgress(
   studentId: string,
   moduleId: string,
-  watchPositionSeconds: number,
-  durationSeconds: number
+  watchPositionSeconds: number
 ) {
   const supabase = await createClient();
 
@@ -42,9 +34,10 @@ export async function upsertProgress(
   } | null;
 
   // Never let tracked position move backward — re-opening a module already
-  // watched shouldn't reset progress.
+  // watched shouldn't reset progress. An explicit completion also never
+  // regresses to in_progress just because the passive tracker ticked again.
   const nextPosition = Math.max(existing?.watch_position_seconds ?? 0, watchPositionSeconds);
-  const nextStatus = computeStatus(nextPosition, durationSeconds);
+  const nextStatus = existing?.status === "complete" ? "complete" : computeStatus(nextPosition);
   const completedAt =
     nextStatus === "complete" ? existing?.completed_at ?? new Date().toISOString() : null;
 
@@ -63,6 +56,40 @@ export async function upsertProgress(
   if (upsertError) throw upsertError;
 
   return { status: nextStatus, watchPositionSeconds: nextPosition };
+}
+
+export async function completeProgress(studentId: string, moduleId: string) {
+  const supabase = await createClient();
+
+  const { data: existingRow, error: selectError } = await supabase
+    .from("progress")
+    .select("watch_position_seconds, completed_at")
+    .eq("student_id", studentId)
+    .eq("module_id", moduleId)
+    .maybeSingle();
+
+  if (selectError) throw selectError;
+
+  const existing = existingRow as {
+    watch_position_seconds: number;
+    completed_at: string | null;
+  } | null;
+
+  const { error: upsertError } = await supabase.from("progress").upsert(
+    {
+      student_id: studentId,
+      module_id: moduleId,
+      watch_position_seconds: existing?.watch_position_seconds ?? 0,
+      status: "complete",
+      completed_at: existing?.completed_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "student_id,module_id" }
+  );
+
+  if (upsertError) throw upsertError;
+
+  return { status: "complete" as const };
 }
 
 export async function getProgressMap(studentId: string): Promise<Map<string, ProgressStatus>> {

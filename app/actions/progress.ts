@@ -1,9 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { upsertProgress } from "@/lib/progress";
+import { upsertProgress, completeProgress } from "@/lib/progress";
 
-export async function updateProgress(moduleId: string, watchPositionSeconds: number) {
+async function requireUserId(): Promise<string> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,16 +14,17 @@ export async function updateProgress(moduleId: string, watchPositionSeconds: num
     throw new Error("Not signed in.");
   }
 
-  const { data: courseModule, error } = await supabase
-    .from("modules")
-    .select("duration_seconds")
-    .eq("id", moduleId)
-    .single();
+  return user.id;
+}
 
-  if (error || !courseModule) {
-    throw new Error("Module not found.");
-  }
+export async function updateProgress(moduleId: string, watchPositionSeconds: number) {
+  const userId = await requireUserId();
+  return upsertProgress(userId, moduleId, watchPositionSeconds);
+}
 
-  const durationSeconds = (courseModule as { duration_seconds: number }).duration_seconds;
-  return upsertProgress(user.id, moduleId, watchPositionSeconds, durationSeconds);
+export async function markModuleComplete(moduleId: string) {
+  const userId = await requireUserId();
+  const result = await completeProgress(userId, moduleId);
+  revalidatePath("/dashboard");
+  return result;
 }
