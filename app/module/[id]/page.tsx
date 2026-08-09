@@ -37,7 +37,7 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           href="/dashboard"
           className="font-heading text-base font-bold uppercase tracking-wide text-muted-light hover:text-accent"
         >
-          ← Back to library
+          ← Back to Starter Kit
         </Link>
 
         <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
@@ -97,7 +97,7 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
                 href="/dashboard"
                 className="border border-foreground px-6 py-3 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent"
               >
-                Back to library
+                Back to Starter Kit
               </Link>
             )
           ) : (

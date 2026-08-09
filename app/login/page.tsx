@@ -8,7 +8,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-muted-light">
-          Private Library
+          Private Starter Kit
         </p>
         <h1 className="mt-2 font-heading text-4xl font-bold uppercase leading-none tracking-tight text-foreground">
           Enter <span className="text-accent">UNSTUCK</span>

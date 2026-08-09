@@ -33,7 +33,7 @@ function accessEmailHtml(magicLink: string): string {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #111;">
       <h1 style="font-size: 22px;">You're in.</h1>
-      <p>Your private UNSTUCK library is ready. Click below to jump straight in — no password needed.</p>
+      <p>Your private UNSTUCK Starter Kit is ready. Click below to jump straight in — no password needed.</p>
       <p style="margin: 24px 0;">
         <a href="${magicLink}" style="display:inline-block;padding:12px 24px;background:#111;color:#fff;text-decoration:none;border-radius:6px;">Enter UNSTUCK</a>
       </p>

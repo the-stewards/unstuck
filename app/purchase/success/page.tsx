@@ -26,7 +26,7 @@ export default async function PurchaseSuccessPage({
         <hr className="mx-auto mt-4 w-16 border-t-2 border-accent" />
         <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
           {order
-            ? `We've sent your login link to ${order.email}. It drops you straight into the library.`
+            ? `We've sent your login link to ${order.email}. It drops you straight into the Starter Kit.`
             : "Your payment went through — we're finishing setting up your access. This usually takes a few seconds. Refresh if it's been a minute."}
         </p>
       </div>

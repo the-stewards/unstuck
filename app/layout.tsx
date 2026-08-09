@@ -19,8 +19,8 @@ const frankRuhlLibre = Frank_Ruhl_Libre({
 });
 
 export const metadata: Metadata = {
-  title: "UNSTUCK — Private Library",
-  description: "The private UNSTUCK course library — for attendees who acted before we closed the doors.",
+  title: "UNSTUCK — Private Starter Kit",
+  description: "The private UNSTUCK Starter Kit — for attendees who acted before we closed the doors.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

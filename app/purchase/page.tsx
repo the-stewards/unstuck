@@ -9,14 +9,14 @@ export default async function PurchasePage({ searchParams }: PageProps<"/purchas
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md text-center">
         <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-muted-light">
-          Private Library — $47
+          Private Starter Kit — $47
         </p>
         <h1 className="mt-2 font-heading text-4xl font-bold uppercase leading-none tracking-tight text-foreground">
           Get in before we <span className="text-accent">close</span> it
         </h1>
         <hr className="mx-auto mt-4 w-16 border-t-2 border-accent" />
         <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
-          One-time $47 unlocks the full UNSTUCK library — every module, every companion resource,
+          One-time $47 unlocks the full UNSTUCK Starter Kit — every module, every companion resource,
           right now.
         </p>
 
