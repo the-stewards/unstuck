@@ -20,17 +20,25 @@ export async function requestMagicLink(formData: FormData): Promise<MagicLinkRes
     return { success: false, error: "Enter a valid email address." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-    },
-  });
+  // Wrapped end-to-end: this action must always resolve to a MagicLinkResult,
+  // never throw. LoginForm awaits it directly with no try/catch of its own —
+  // an uncaught exception here surfaces as Next's generic full-page error
+  // boundary instead of the inline "something went wrong" state.
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+      },
+    });
 
-  if (error) {
-    return { success: false, error: error.message };
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong. Try again in a moment." };
   }
-
-  return { success: true };
 }

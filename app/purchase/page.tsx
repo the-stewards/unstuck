@@ -1,4 +1,10 @@
-export default function PurchasePage() {
+import { PurchaseButton } from "@/components/PurchaseButton";
+
+export default async function PurchasePage({ searchParams }: PageProps<"/purchase">) {
+  const params = await searchParams;
+  const emailParam = params.email;
+  const initialEmail = typeof emailParam === "string" ? emailParam : "";
+
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md text-center">
@@ -9,13 +15,7 @@ export default function PurchasePage() {
           right now.
         </p>
 
-        {/* Wired to /api/stripe/checkout in Phase 4 */}
-        <button
-          type="button"
-          className="mt-6 w-full rounded-md bg-accent px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-        >
-          Get instant access — $47
-        </button>
+        <PurchaseButton initialEmail={initialEmail} />
 
         <p className="mt-4 text-xs text-muted">
           Already purchased? Check your email for your login link, or head to{" "}

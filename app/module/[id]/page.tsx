@@ -6,6 +6,7 @@ import { getModuleProgress } from "@/lib/progress";
 import { AppHeader } from "@/components/AppHeader";
 import { DubbEmbed } from "@/components/DubbEmbed";
 import { ResourceCard } from "@/components/ResourceCard";
+import { ProgressTracker } from "@/components/ProgressTracker";
 
 export default async function ModulePage({ params }: PageProps<"/module/[id]">) {
   const { id } = await params;
@@ -46,7 +47,12 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           <DubbEmbed dubbUrl={courseModule.dubb_url} title={courseModule.title} />
         </div>
 
-        {/* Progress-tracking hook (visibilitychange + timer → updateProgress) wired in Phase 4 */}
+        {status !== "complete" && (
+          <ProgressTracker
+            moduleId={id}
+            initialWatchPositionSeconds={progress?.watchPositionSeconds ?? 0}
+          />
+        )}
 
         {resources.length > 0 && (
           <div className="mt-8 flex flex-col gap-3">
