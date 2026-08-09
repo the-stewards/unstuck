@@ -32,7 +32,7 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
   return (
     <div className="flex flex-1 flex-col">
       <AppHeader email={user.email} />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10 lg:max-w-4xl">
         <Link
           href="/dashboard"
           className="font-heading text-base font-bold uppercase tracking-wide text-muted-light hover:text-accent"
