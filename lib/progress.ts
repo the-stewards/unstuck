@@ -65,6 +65,38 @@ export async function upsertProgress(
   return { status: nextStatus, watchPositionSeconds: nextPosition };
 }
 
+export async function getProgressMap(studentId: string): Promise<Map<string, ProgressStatus>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("progress")
+    .select("module_id, status")
+    .eq("student_id", studentId);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as { module_id: string; status: ProgressStatus }[];
+  return new Map(rows.map((row) => [row.module_id, row.status]));
+}
+
+export async function getModuleProgress(
+  studentId: string,
+  moduleId: string
+): Promise<{ status: ProgressStatus; watchPositionSeconds: number } | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("progress")
+    .select("status, watch_position_seconds")
+    .eq("student_id", studentId)
+    .eq("module_id", moduleId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const row = data as { status: ProgressStatus; watch_position_seconds: number };
+  return { status: row.status, watchPositionSeconds: row.watch_position_seconds };
+}
+
 export async function getCourseProgress(studentId: string) {
   const supabase = await createClient();
 

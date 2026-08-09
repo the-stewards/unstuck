@@ -2,7 +2,17 @@ import "server-only";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | undefined;
+
+// Lazy singleton — same reason as lib/stripe.ts: instantiating eagerly at
+// module scope crashes build-time route analysis when RESEND_API_KEY isn't
+// set yet.
+function getResend(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 // Generates a Supabase magic link without sending Supabase's own email —
 // used only for the post-access-grant email, which has to double as a
@@ -39,7 +49,7 @@ function accessEmailHtml(magicLink: string): string {
 export async function sendAccessGrantedEmail(email: string): Promise<void> {
   const magicLink = await generateMagicLink(email);
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to: email,
     subject: "You're in — UNSTUCK access + login link",
