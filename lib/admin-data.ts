@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Student } from "@/lib/types";
+import type { Bonus, Module, Resource, Student, Testimonial } from "@/lib/types";
 
 export interface StudentWithProgress extends Student {
   completedModules: number;
@@ -38,4 +38,53 @@ export async function listStudentsWithProgress(): Promise<StudentWithProgress[]>
     completedModules: completedByStudent.get(student.id) ?? 0,
     totalModules,
   }));
+}
+
+export interface ModuleWithResources extends Module {
+  resources: Resource[];
+}
+
+// Admin content editing needs every module/resource/bonus/testimonial
+// regardless of whether the admin's own account has an access_grants row —
+// the RLS-gated reads in lib/course.ts require has_access() and would
+// wrongly hide content from an admin who isn't also a paying student.
+export async function listModulesWithResources(): Promise<ModuleWithResources[]> {
+  const supabase = createAdminClient();
+
+  const [
+    { data: modules, error: modulesError },
+    { data: resources, error: resourcesError },
+  ] = await Promise.all([
+    supabase.from("modules").select("*").order("display_order"),
+    supabase.from("resources").select("*").order("display_order"),
+  ]);
+
+  if (modulesError) throw modulesError;
+  if (resourcesError) throw resourcesError;
+
+  const resourcesByModule = new Map<string, Resource[]>();
+  for (const resource of (resources ?? []) as Resource[]) {
+    const list = resourcesByModule.get(resource.module_id) ?? [];
+    list.push(resource);
+    resourcesByModule.set(resource.module_id, list);
+  }
+
+  return ((modules ?? []) as Module[]).map((courseModule) => ({
+    ...courseModule,
+    resources: resourcesByModule.get(courseModule.id) ?? [],
+  }));
+}
+
+export async function listAllBonuses(): Promise<Bonus[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("bonuses").select("*").order("display_order");
+  if (error) throw error;
+  return (data ?? []) as Bonus[];
+}
+
+export async function listAllTestimonials(): Promise<Testimonial[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("testimonials").select("*").order("display_order");
+  if (error) throw error;
+  return (data ?? []) as Testimonial[];
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/session";
 import { listStudentsWithProgress } from "@/lib/admin-data";
 import { AppHeader } from "@/components/AppHeader";
@@ -12,7 +13,19 @@ export default async function AdminPage() {
     <div className="flex flex-1 flex-col">
       <AppHeader email={user.email} />
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
-        <h1 className="text-2xl font-semibold text-foreground">Students</h1>
+        <nav className="flex gap-4 text-sm">
+          <Link href="/admin/modules" className="text-accent underline">
+            Modules
+          </Link>
+          <Link href="/admin/bonuses" className="text-accent underline">
+            Bonuses
+          </Link>
+          <Link href="/admin/testimonials" className="text-accent underline">
+            Testimonials
+          </Link>
+        </nav>
+
+        <h1 className="mt-6 text-2xl font-semibold text-foreground">Students</h1>
 
         <div className="mt-6">
           <AdminGrantForm />
