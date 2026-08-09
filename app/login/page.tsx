@@ -1,6 +1,9 @@
 import { LoginForm } from "@/components/LoginForm";
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  const params = await searchParams;
+  const hasInvalidLinkError = params.error === "invalid_link";
+
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
@@ -10,6 +13,13 @@ export default function LoginPage() {
           Just for attendees who acted before we closed the doors. Enter your email — we&apos;ll
           send a link straight in, no password needed.
         </p>
+
+        {hasInvalidLinkError && (
+          <p className="mt-4 rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-400">
+            That link didn&apos;t work — it may have expired or already been used. Request a new
+            one below.
+          </p>
+        )}
 
         <LoginForm />
       </div>
