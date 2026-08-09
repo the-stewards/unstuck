@@ -7,7 +7,7 @@ export function AppHeader({ email }: { email?: string }) {
         href="/dashboard"
         className="font-heading text-base font-bold uppercase tracking-wide text-foreground"
       >
-        UNSTUCK <span className="text-accent">·</span> Private Starter Kit
+        UNSTUCK <span className="text-accent">·</span> Starter Kit
       </Link>
       {email && <span className="font-body text-base text-muted">{email}</span>}
     </header>
