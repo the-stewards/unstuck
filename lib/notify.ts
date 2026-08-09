@@ -49,10 +49,16 @@ function accessEmailHtml(magicLink: string): string {
 export async function sendAccessGrantedEmail(email: string): Promise<void> {
   const magicLink = await generateMagicLink(email);
 
-  await getResend().emails.send({
+  // Resend reports API-level rejections (bad sender, rejected recipient
+  // domain, etc.) through this response's `error` field, not by rejecting
+  // the promise — checking it is what makes a failed send actually visible
+  // as a failure to the caller, instead of silently reporting success.
+  const { error } = await getResend().emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to: email,
     subject: "You're in — UNSTUCK access + login link",
     html: accessEmailHtml(magicLink),
   });
+
+  if (error) throw error;
 }

@@ -40,7 +40,7 @@ function mockOrdersInsert(error: { code: string } | null) {
   return insert;
 }
 
-describe("POST /api/stripe/webhook (idempotency)", () => {
+describe("POST /api/stripe/webhook", () => {
   beforeEach(() => {
     vi.mocked(getStripe).mockReturnValue({
       webhooks: { constructEvent: vi.fn(() => fakeEvent) },
@@ -49,30 +49,59 @@ describe("POST /api/stripe/webhook (idempotency)", () => {
     vi.mocked(sendAccessGrantedEmail).mockReset();
   });
 
-  it("grants access and sends one email on first delivery", async () => {
-    mockOrdersInsert(null);
+  it("grants access, sends one email, and records the order on first delivery", async () => {
+    const insert = mockOrdersInsert(null);
+    vi.mocked(grantAccess).mockResolvedValue({ granted: true, alreadyGranted: false });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(grantAccess).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "buyer@example.com", source: "stripe_purchase" })
+    );
+    expect(sendAccessGrantedEmail).toHaveBeenCalledTimes(1);
+    expect(insert).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not send a second email on a retried delivery (grantAccess already idempotent)", async () => {
+    // grantAccess() is the idempotency boundary now, not the order insert —
+    // a retry calls grantAccess again, which reports the existing grant.
+    mockOrdersInsert({ code: "23505" });
+    vi.mocked(grantAccess).mockResolvedValue({ granted: false, alreadyGranted: true });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(sendAccessGrantedEmail).not.toHaveBeenCalled();
+  });
+
+  it("still returns 200 and keeps the grant when order bookkeeping fails", async () => {
+    // Regression for a real P1 found in Codex review: the order insert used
+    // to run first and gate everything else, so any failure there (or a
+    // later step throwing) meant a retry would skip grantAccess/email
+    // forever. It's bookkeeping now — its failure must not undo or block
+    // the grant that already succeeded.
+    mockOrdersInsert({ code: "23502" }); // not a unique violation — a real failure
     vi.mocked(grantAccess).mockResolvedValue({ granted: true, alreadyGranted: false });
 
     const response = await POST(webhookRequest());
 
     expect(response.status).toBe(200);
     expect(grantAccess).toHaveBeenCalledTimes(1);
-    expect(grantAccess).toHaveBeenCalledWith(
-      expect.objectContaining({ email: "buyer@example.com", source: "stripe_purchase" })
-    );
     expect(sendAccessGrantedEmail).toHaveBeenCalledTimes(1);
   });
 
-  it("does not grant access or send a second email on a retried delivery", async () => {
-    // Stripe retries webhook delivery on anything but a 2xx response, so a
-    // duplicate event for the same session must be a no-op past the order
-    // insert — this is what stripe_session_id's unique constraint enforces.
-    mockOrdersInsert({ code: "23505" });
+  it("still returns 200 and still records the order when the access email fails to send", async () => {
+    // Regression for the email half of the same P1: a Resend failure must
+    // not turn into a 500 that makes Stripe retry — a retry wouldn't help,
+    // since grantAccess would just report the grant already exists.
+    const insert = mockOrdersInsert(null);
+    vi.mocked(grantAccess).mockResolvedValue({ granted: true, alreadyGranted: false });
+    vi.mocked(sendAccessGrantedEmail).mockRejectedValue(new Error("Resend rejected recipient"));
 
     const response = await POST(webhookRequest());
 
     expect(response.status).toBe(200);
-    expect(grantAccess).not.toHaveBeenCalled();
-    expect(sendAccessGrantedEmail).not.toHaveBeenCalled();
+    expect(insert).toHaveBeenCalledTimes(1);
   });
 });

@@ -48,6 +48,35 @@ export async function POST(request: Request) {
   const normalizedEmail = email.trim().toLowerCase();
   const supabase = createAdminClient();
 
+  // Order matters: grantAccess() is idempotent on its own (checks
+  // access_grants before inserting), so it's safe to run on every delivery,
+  // including retries. Doing this FIRST — not gating it behind the order
+  // insert — is what makes a retry after a transient failure actually retry
+  // the important part instead of silently no-op'ing forever. (Previously
+  // the order insert ran first as a dedup gate; if grantAccess or the email
+  // then threw, the retry would hit the order's unique constraint and skip
+  // re-attempting either one, permanently.)
+  const result = await grantAccess({
+    email: normalizedEmail,
+    source: "stripe_purchase",
+    stripeSessionId: session.id,
+  });
+
+  if (result.granted) {
+    try {
+      await sendAccessGrantedEmail(normalizedEmail);
+    } catch (err) {
+      // Don't fail the webhook over this — access was already granted
+      // successfully, and a Stripe retry wouldn't help anyway (grantAccess
+      // would just see the existing grant and skip re-sending). Surface it
+      // loudly in logs instead; resending is a manual follow-up today.
+      console.error("Failed to send access-granted email:", normalizedEmail, err);
+    }
+  }
+
+  // Bookkeeping only, not a gate — a failure here (including a duplicate
+  // delivery hitting the unique constraint) shouldn't block the response or
+  // trigger a retry, since the part that matters already succeeded above.
   const { error: orderError } = await supabase.from("orders").insert({
     stripe_session_id: session.id,
     stripe_customer_id: typeof session.customer === "string" ? session.customer : null,
@@ -55,21 +84,8 @@ export async function POST(request: Request) {
     amount_cents: session.amount_total ?? 0,
   });
 
-  const isDuplicateDelivery = orderError?.code === UNIQUE_VIOLATION;
-  if (orderError && !isDuplicateDelivery) {
-    return NextResponse.json({ error: orderError.message }, { status: 500 });
-  }
-
-  if (!isDuplicateDelivery) {
-    const result = await grantAccess({
-      email: normalizedEmail,
-      source: "stripe_purchase",
-      stripeSessionId: session.id,
-    });
-
-    if (result.granted) {
-      await sendAccessGrantedEmail(normalizedEmail);
-    }
+  if (orderError && orderError.code !== UNIQUE_VIOLATION) {
+    console.error("Failed to record order:", session.id, orderError);
   }
 
   return NextResponse.json({ received: true });
