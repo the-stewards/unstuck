@@ -1,24 +1,22 @@
 interface DubbEmbedProps {
-  dubbUrl: string;
+  embedHtml: string;
   title: string;
 }
 
-// Mirrors Dubb's own responsive embed markup (padding-bottom aspect-ratio
-// trick, absolute-positioned iframe). No confirmed postMessage/JS event API
-// from Dubb — see build-plan-lms.md — so this is a plain iframe with no
-// completion-event wiring. Progress is tracked separately via the
-// time-elapsed heuristic in the parent page, not anything from this embed.
-export function DubbEmbed({ dubbUrl, title }: DubbEmbedProps) {
+// Renders Dubb's own embed snippet verbatim (admin pastes the full
+// <div><iframe>...</iframe></div> block from Dubb, aspect-ratio wrapper
+// included) rather than us reconstructing it from a bare URL. No confirmed
+// postMessage/JS event API from Dubb — see build-plan-lms.md — so progress
+// is still tracked separately via the time-elapsed heuristic in the parent
+// page, not anything from this embed. Admin-only input (gated by
+// requireAdminEmail), same trust boundary as the rest of the CMS.
+export function DubbEmbed({ embedHtml, title }: DubbEmbedProps) {
   return (
-    <div className="relative w-full overflow-hidden" style={{ paddingBottom: "56.25%" }}>
-      <iframe
-        className="absolute left-0 top-0 h-full w-full"
-        src={dubbUrl}
-        title={title}
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowFullScreen
-        frameBorder={0}
-      />
-    </div>
+    <div
+      className="w-full overflow-hidden [&_iframe]:w-full"
+      role="group"
+      aria-label={title}
+      dangerouslySetInnerHTML={{ __html: embedHtml }}
+    />
   );
 }

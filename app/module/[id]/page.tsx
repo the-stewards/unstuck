@@ -53,7 +53,7 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
         )}
 
         <div className="mt-6">
-          <DubbEmbed dubbUrl={courseModule.dubb_url} title={courseModule.title} />
+          <DubbEmbed embedHtml={courseModule.dubb_url} title={courseModule.title} />
         </div>
 
         {status !== "complete" && (

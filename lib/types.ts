@@ -32,6 +32,7 @@ export interface Module {
   id: string;
   title: string;
   description: string | null;
+  /** Full Dubb embed HTML snippet (wrapper div + iframe), not a bare URL. */
   dubb_url: string;
   duration_seconds: number;
   display_order: number;

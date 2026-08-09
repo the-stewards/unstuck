@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { upsertModule, deleteModule } from "@/app/actions/content";
 import type { Module } from "@/lib/types";
 
-const EMPTY = { title: "", description: "", dubbUrl: "", durationSeconds: 0, displayOrder: 0 };
+const EMPTY = { title: "", description: "", dubbEmbed: "", durationSeconds: 0, displayOrder: 0 };
 const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
 const INPUT = "border border-border bg-background px-3 py-2 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
@@ -13,7 +13,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
   const router = useRouter();
   const [title, setTitle] = useState(existingModule?.title ?? EMPTY.title);
   const [description, setDescription] = useState(existingModule?.description ?? EMPTY.description);
-  const [dubbUrl, setDubbUrl] = useState(existingModule?.dubb_url ?? EMPTY.dubbUrl);
+  const [dubbEmbed, setDubbEmbed] = useState(existingModule?.dubb_url ?? EMPTY.dubbEmbed);
   const [durationSeconds, setDurationSeconds] = useState(
     existingModule?.duration_seconds ?? EMPTY.durationSeconds
   );
@@ -31,7 +31,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
           id: existingModule?.id,
           title,
           description,
-          dubb_url: dubbUrl,
+          dubb_url: dubbEmbed,
           duration_seconds: durationSeconds,
           display_order: displayOrder,
         });
@@ -39,7 +39,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
         if (!existingModule) {
           setTitle(EMPTY.title);
           setDescription(EMPTY.description);
-          setDubbUrl(EMPTY.dubbUrl);
+          setDubbEmbed(EMPTY.dubbEmbed);
           setDurationSeconds(EMPTY.durationSeconds);
           setDisplayOrder(EMPTY.displayOrder);
         }
@@ -71,9 +71,16 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
           Title
           <input value={title} onChange={(event) => setTitle(event.target.value)} required className={INPUT} />
         </label>
-        <label className={LABEL}>
-          Dubb embed URL
-          <input value={dubbUrl} onChange={(event) => setDubbUrl(event.target.value)} required className={INPUT} />
+        <label className={`${LABEL} sm:col-span-2`}>
+          Dubb embed code
+          <textarea
+            value={dubbEmbed}
+            onChange={(event) => setDubbEmbed(event.target.value)}
+            required
+            rows={4}
+            placeholder='<div style="position: relative; height: 0; padding-bottom: 56.25%;">...</div>'
+            className={`${INPUT} font-mono text-base`}
+          />
         </label>
         <label className={`${LABEL} sm:col-span-2`}>
           Description
