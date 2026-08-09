@@ -1,4 +1,13 @@
 [build]
+  # NOTE: as of this build, Netlify deploys are broken for this project.
+  # @netlify/plugin-nextjs@5.15.13's edge-function bundler can't load
+  # proxy.ts's compiled output under Next 16 — fails looking for a runtime
+  # chunk regardless of bundler (tried both Turbopack's default and
+  # `--webpack`, same class of error either way: "Cannot find module
+  # './chunks/[turbopack]_runtime.js'" / "'./webpack-runtime.js'"). This
+  # looks like the plugin hasn't caught up with Next 16's proxy.ts output
+  # format yet. Deployed to Vercel instead (see handoff/final-report-lms.md)
+  # — revisit this config if a newer @netlify/plugin-nextjs fixes it.
   command = "npm run build"
   publish = ".next"
 
