@@ -1,34 +1,42 @@
+import Link from "next/link";
 import { getOrderBySessionId } from "@/lib/course";
+import { PurchaseSuccessStatus } from "@/components/PurchaseSuccessStatus";
 
 export default async function PurchaseSuccessPage({
   searchParams,
 }: PageProps<"/purchase/success">) {
   const { session_id: sessionId } = await searchParams;
-  const order = typeof sessionId === "string" ? await getOrderBySessionId(sessionId) : null;
+
+  if (typeof sessionId !== "string") {
+    return (
+      <main className="flex flex-1 items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md text-center">
+          <h1 className="font-heading text-4xl font-bold uppercase leading-none tracking-tight text-foreground">
+            No <span className="text-accent">order</span> found
+          </h1>
+          <hr className="mx-auto mt-4 w-16 border-t-2 border-accent" />
+          <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
+            This link is missing your order details.{" "}
+            <Link href="/purchase" className="text-accent underline">
+              Head back to purchase
+            </Link>{" "}
+            or check your email if you already paid.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const order = await getOrderBySessionId(sessionId);
 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md text-center">
-        <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-muted-light">
-          You&apos;re in
-        </p>
-        <h1 className="mt-2 font-heading text-4xl font-bold uppercase leading-none tracking-tight text-foreground">
-          {order ? (
-            <>
-              Check your <span className="text-accent">email</span>
-            </>
-          ) : (
-            <>
-              Almost <span className="text-accent">there</span>
-            </>
-          )}
-        </h1>
-        <hr className="mx-auto mt-4 w-16 border-t-2 border-accent" />
-        <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
-          {order
-            ? `We've sent your login link to ${order.email}. It drops you straight into the Starter Kit.`
-            : "Your payment went through — we're finishing setting up your access. This usually takes a few seconds. Refresh if it's been a minute."}
-        </p>
+        <PurchaseSuccessStatus
+          sessionId={sessionId}
+          initialFound={!!order}
+          initialEmail={order?.email ?? null}
+        />
       </div>
     </main>
   );
