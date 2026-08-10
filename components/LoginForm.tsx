@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { requestMagicLink, type MagicLinkResult } from "@/app/actions/auth";
+import { SUPPORT_EMAIL } from "@/lib/support";
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition();
@@ -57,7 +58,15 @@ export function LoginForm() {
       >
         {isPending ? "Sending…" : "Send my login link"}
       </button>
-      {result?.error && <p className="font-body text-base text-red-700">{result.error}</p>}
+      {result?.error && (
+        <p className="font-body text-base text-red-700">
+          {result.error} Still stuck?{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
+            Email us
+          </a>
+          .
+        </p>
+      )}
     </form>
   );
 }

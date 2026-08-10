@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/support";
 
 export function AppHeader({ email }: { email?: string }) {
   return (
@@ -9,7 +10,15 @@ export function AppHeader({ email }: { email?: string }) {
       >
         UNSTUCK <span className="text-accent">·</span> Starter Kit
       </Link>
-      {email && <span className="font-body text-base text-muted">{email}</span>}
+      <div className="flex items-center gap-4">
+        <a
+          href={`mailto:${SUPPORT_EMAIL}`}
+          className="font-body text-base text-muted-light hover:text-accent"
+        >
+          Need help?
+        </a>
+        {email && <span className="font-body text-base text-muted">{email}</span>}
+      </div>
     </header>
   );
 }

@@ -1,4 +1,5 @@
 import { LoginForm } from "@/components/LoginForm";
+import { SUPPORT_EMAIL } from "@/lib/support";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
@@ -22,7 +23,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         {hasInvalidLinkError && (
           <p className="mt-4 border-l-4 border-red-700 bg-red-950/10 px-4 py-3 font-body text-base text-red-700">
             That link didn&apos;t work — it may have expired or already been used. Request a new
-            one below.
+            one below. Still stuck?{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
+              Email us
+            </a>
+            .
           </p>
         )}
 

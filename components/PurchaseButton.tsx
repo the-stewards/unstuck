@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { SUPPORT_EMAIL } from "@/lib/support";
 
 interface PurchaseButtonProps {
   initialEmail?: string;
@@ -50,7 +51,15 @@ export function PurchaseButton({ initialEmail = "", className = "mt-6 flex flex-
       >
         {isPending ? "Redirecting…" : "Get instant access — $47"}
       </button>
-      {error && <p className="font-body text-base text-red-700">{error}</p>}
+      {error && (
+        <p className="font-body text-base text-red-700">
+          {error} Still stuck?{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
+            Email us
+          </a>
+          .
+        </p>
+      )}
     </form>
   );
 }
