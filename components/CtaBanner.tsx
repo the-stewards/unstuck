@@ -18,7 +18,7 @@ const COPY: Record<CallStatus, CopyEntry> = {
     headingPre: "",
     headingOrange: "Reactivate",
     headingPost: " Your Bonuses",
-    body: "The bonuses you missed are still gone — unless you get on a call.",
+    body: "The bonuses you missed are still locked — unless you get on a call.",
     cta: "Book a Call",
   },
   booked: {

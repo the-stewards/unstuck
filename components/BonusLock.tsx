@@ -7,7 +7,7 @@ interface BonusLockProps {
 
 // Locked bonuses stay visible (never hidden) — seeing what's missing is the
 // FOMO mechanic. Locked gets the heavier anchor-card treatment (charcoal +
-// orange top border) to make "still gone" read as the more serious state;
+// orange top border) to make "still locked" read as the more serious state;
 // unlocked gets the standard card (cream + charcoal top border).
 export function BonusLock({ bonus, status }: BonusLockProps) {
   const isLocked = status === "locked_missed";
@@ -45,7 +45,7 @@ export function BonusLock({ bonus, status }: BonusLockProps) {
       </div>
       {isLocked && (
         <p className="mt-3 font-heading text-base font-bold uppercase tracking-wide text-accent">
-          Gone unless you book a call.
+          Locked unless you book a call.
         </p>
       )}
     </div>
