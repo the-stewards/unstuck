@@ -37,7 +37,7 @@ export default async function DashboardPage() {
         </h1>
 
         <div className="mt-6">
-          <ProgressBar percent={courseProgress.percent} label="Course progress" />
+          <ProgressBar percent={courseProgress.percent} label="Your progress" />
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
