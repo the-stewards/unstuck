@@ -10,11 +10,11 @@ export function AppHeader({ email }: { email?: string }) {
       >
         UNSTUCK <span className="text-accent">·</span> Starter Kit
       </Link>
-      <div className="flex flex-col items-end gap-1">
+      <div className="flex flex-col items-end">
         {email && <span className="font-body text-base text-muted">{email}</span>}
         <a
           href={`mailto:${SUPPORT_EMAIL}`}
-          className="font-body text-base text-muted-light hover:text-accent"
+          className="mt-1 border-t border-border pt-1 font-body text-base text-muted-light hover:text-accent"
         >
           Need help?
         </a>
