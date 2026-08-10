@@ -155,3 +155,75 @@ export async function deleteTestimonial(id: string) {
   if (error) throw error;
   revalidatePath("/admin/testimonials");
 }
+
+type OrderedTable = "modules" | "resources" | "bonuses" | "testimonials";
+
+// Reordering used to mean hand-typing a display_order number and guessing
+// how it'd land relative to everything else. This swaps display_order with
+// the adjacent item instead — an admin just clicks up/down. Resources are
+// scoped to their module_id so reordering one module's resources can't
+// reshuffle another module's.
+async function swapDisplayOrder(
+  table: OrderedTable,
+  id: string,
+  direction: "up" | "down",
+  scope?: { column: string; value: string }
+) {
+  const supabase = createAdminClient();
+
+  const { data, error } = scope
+    ? await supabase
+        .from(table)
+        .select("id, display_order")
+        .eq(scope.column, scope.value)
+        .order("display_order")
+    : await supabase.from(table).select("id, display_order").order("display_order");
+
+  if (error) throw error;
+
+  const items = (data ?? []) as { id: string; display_order: number }[];
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) return;
+
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (swapIndex < 0 || swapIndex >= items.length) return;
+
+  const current = items[index];
+  const swap = items[swapIndex];
+
+  const { error: currentError } = await supabase
+    .from(table)
+    .update({ display_order: swap.display_order })
+    .eq("id", current.id);
+  if (currentError) throw currentError;
+
+  const { error: swapError } = await supabase
+    .from(table)
+    .update({ display_order: current.display_order })
+    .eq("id", swap.id);
+  if (swapError) throw swapError;
+}
+
+export async function moveModule(id: string, direction: "up" | "down") {
+  await requireAdminEmail();
+  await swapDisplayOrder("modules", id, direction);
+  revalidatePath("/admin/modules");
+}
+
+export async function moveResource(id: string, moduleId: string, direction: "up" | "down") {
+  await requireAdminEmail();
+  await swapDisplayOrder("resources", id, direction, { column: "module_id", value: moduleId });
+  revalidatePath("/admin/modules");
+}
+
+export async function moveBonus(id: string, direction: "up" | "down") {
+  await requireAdminEmail();
+  await swapDisplayOrder("bonuses", id, direction);
+  revalidatePath("/admin/bonuses");
+}
+
+export async function moveTestimonial(id: string, direction: "up" | "down") {
+  await requireAdminEmail();
+  await swapDisplayOrder("testimonials", id, direction);
+  revalidatePath("/admin/testimonials");
+}

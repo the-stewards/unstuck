@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/session";
 import { listAllTestimonials } from "@/lib/admin-data";
 import { AppHeader } from "@/components/AppHeader";
 import { TestimonialForm } from "@/components/TestimonialForm";
+import { ReorderButtons } from "@/components/ReorderButtons";
 
 export default async function AdminTestimonialsPage() {
   const user = await requireAdmin();
@@ -24,8 +25,18 @@ export default async function AdminTestimonialsPage() {
         </h1>
 
         <div className="mt-6 flex flex-col gap-4">
-          {testimonials.map((testimonial) => (
-            <TestimonialForm key={testimonial.id} testimonial={testimonial} />
+          {testimonials.map((testimonial, index) => (
+            <div key={testimonial.id} className="flex items-start gap-3">
+              <ReorderButtons
+                kind="testimonial"
+                id={testimonial.id}
+                disableUp={index === 0}
+                disableDown={index === testimonials.length - 1}
+              />
+              <div className="flex-1">
+                <TestimonialForm testimonial={testimonial} />
+              </div>
+            </div>
           ))}
         </div>
 

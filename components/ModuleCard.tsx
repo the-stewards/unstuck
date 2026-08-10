@@ -6,6 +6,7 @@ interface ModuleCardProps {
   title: string;
   description: string | null;
   status: ProgressStatus;
+  isNext?: boolean;
 }
 
 const STATUS_LABEL: Record<ProgressStatus, string> = {
@@ -14,15 +15,26 @@ const STATUS_LABEL: Record<ProgressStatus, string> = {
   complete: "Complete",
 };
 
+const NEXT_LABEL: Record<ProgressStatus, string> = {
+  not_started: "Start here →",
+  in_progress: "Continue →",
+  complete: "Complete",
+};
+
 // Soft lock: every module is a live link regardless of status — nothing is
 // greyed out or blocked. The checkmark is the only signal of completion.
 // Standard card treatment: cream fill, charcoal top border, orange accent
-// reserved for the one thing that matters — the completion state.
-export function ModuleCard({ id, title, description, status }: ModuleCardProps) {
+// reserved for the one thing that matters — the completion state. The one
+// exception is isNext: the first not-yet-complete module in order gets the
+// orange top border + orange label treatment instead, so a student never has
+// to guess which card to click.
+export function ModuleCard({ id, title, description, status, isNext = false }: ModuleCardProps) {
   return (
     <Link
       href={`/module/${id}`}
-      className="flex items-center justify-between gap-4 border-t-[3px] border-foreground bg-card px-5 py-4 transition-colors hover:border-accent"
+      className={`flex items-center justify-between gap-4 border-t-[3px] bg-card px-5 py-4 transition-colors hover:border-accent ${
+        isNext ? "border-accent" : "border-foreground"
+      }`}
     >
       <div>
         <h3 className="font-heading text-[22px] font-bold uppercase leading-tight text-foreground">
@@ -39,6 +51,10 @@ export function ModuleCard({ id, title, description, status }: ModuleCardProps) 
             aria-label="Complete"
           >
             ✓
+          </span>
+        ) : isNext ? (
+          <span className="font-heading text-base font-bold uppercase tracking-wide text-accent">
+            {NEXT_LABEL[status]}
           </span>
         ) : (
           <span className="font-heading text-base font-bold uppercase tracking-wide text-muted-light">

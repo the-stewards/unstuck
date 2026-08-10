@@ -24,6 +24,9 @@ export default async function DashboardPage() {
 
   const bonusStatusByBonusId = new Map(bonusStatuses.map((s) => [s.bonus_id, s.status]));
   const callStatus = student?.call_status ?? "not_booked";
+  const nextModuleId = modules.find(
+    (courseModule) => (progressMap.get(courseModule.id) ?? "not_started") !== "complete"
+  )?.id;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -45,6 +48,7 @@ export default async function DashboardPage() {
               title={courseModule.title}
               description={courseModule.description}
               status={progressMap.get(courseModule.id) ?? "not_started"}
+              isNext={courseModule.id === nextModuleId}
             />
           ))}
           {modules.length === 0 && (

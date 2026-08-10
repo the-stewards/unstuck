@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/session";
 import { listAllBonuses } from "@/lib/admin-data";
 import { AppHeader } from "@/components/AppHeader";
 import { BonusForm } from "@/components/BonusForm";
+import { ReorderButtons } from "@/components/ReorderButtons";
 
 export default async function AdminBonusesPage() {
   const user = await requireAdmin();
@@ -24,8 +25,18 @@ export default async function AdminBonusesPage() {
         </h1>
 
         <div className="mt-6 flex flex-col gap-4">
-          {bonuses.map((bonus) => (
-            <BonusForm key={bonus.id} bonus={bonus} />
+          {bonuses.map((bonus, index) => (
+            <div key={bonus.id} className="flex items-start gap-3">
+              <ReorderButtons
+                kind="bonus"
+                id={bonus.id}
+                disableUp={index === 0}
+                disableDown={index === bonuses.length - 1}
+              />
+              <div className="flex-1">
+                <BonusForm bonus={bonus} />
+              </div>
+            </div>
           ))}
         </div>
 

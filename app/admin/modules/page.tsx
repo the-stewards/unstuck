@@ -4,6 +4,7 @@ import { listModulesWithResources } from "@/lib/admin-data";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleForm } from "@/components/ModuleForm";
 import { ResourceForm } from "@/components/ResourceForm";
+import { ReorderButtons } from "@/components/ReorderButtons";
 
 export default async function AdminModulesPage() {
   const user = await requireAdmin();
@@ -25,22 +26,37 @@ export default async function AdminModulesPage() {
         </h1>
 
         <div className="mt-6 flex flex-col gap-8">
-          {modules.map((courseModule) => (
-            <div key={courseModule.id}>
-              <ModuleForm module={courseModule} />
+          {modules.map((courseModule, moduleIndex) => (
+            <div key={courseModule.id} className="flex items-start gap-3">
+              <ReorderButtons
+                kind="module"
+                id={courseModule.id}
+                disableUp={moduleIndex === 0}
+                disableDown={moduleIndex === modules.length - 1}
+              />
+              <div className="flex-1">
+                <ModuleForm module={courseModule} />
 
-              <div className="ml-4 mt-3 flex flex-col gap-2 border-l border-border pl-4">
-                <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-accent">
-                  Resources
-                </p>
-                {courseModule.resources.map((resource) => (
-                  <ResourceForm
-                    key={resource.id}
-                    moduleId={courseModule.id}
-                    resource={resource}
-                  />
-                ))}
-                <ResourceForm moduleId={courseModule.id} />
+                <div className="ml-4 mt-3 flex flex-col gap-2 border-l border-border pl-4">
+                  <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-accent">
+                    Resources
+                  </p>
+                  {courseModule.resources.map((resource, resourceIndex) => (
+                    <div key={resource.id} className="flex items-start gap-3">
+                      <ReorderButtons
+                        kind="resource"
+                        id={resource.id}
+                        moduleId={courseModule.id}
+                        disableUp={resourceIndex === 0}
+                        disableDown={resourceIndex === courseModule.resources.length - 1}
+                      />
+                      <div className="flex-1">
+                        <ResourceForm moduleId={courseModule.id} resource={resource} />
+                      </div>
+                    </div>
+                  ))}
+                  <ResourceForm moduleId={courseModule.id} />
+                </div>
               </div>
             </div>
           ))}

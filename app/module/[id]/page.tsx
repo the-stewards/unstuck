@@ -40,7 +40,13 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
           ← Back to Starter Kit
         </Link>
 
-        <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
+        {currentIndex >= 0 && (
+          <p className="mt-4 font-heading text-base font-bold uppercase tracking-[0.3em] text-muted-light">
+            Module {currentIndex + 1} of {allModules.length}
+          </p>
+        )}
+
+        <h1 className="mt-2 font-heading text-3xl font-bold uppercase leading-none tracking-tight text-foreground">
           {courseModule.title}
         </h1>
         {courseModule.description && (
