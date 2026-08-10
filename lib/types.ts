@@ -81,6 +81,8 @@ export interface Bonus {
   title: string;
   description: string | null;
   value_prop: string | null;
+  /** Where the unlocked bonus actually lives (PDF, video, external link). Null until an admin sets it. */
+  content_url: string | null;
   display_order: number;
 }
 

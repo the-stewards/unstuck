@@ -101,6 +101,7 @@ interface BonusInput {
   title: string;
   description: string;
   value_prop: string;
+  content_url: string;
   display_order: number;
 }
 

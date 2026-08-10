@@ -48,6 +48,16 @@ export function BonusLock({ bonus, status }: BonusLockProps) {
           Locked unless you book a call.
         </p>
       )}
+      {!isLocked && bonus.content_url && (
+        <a
+          href={bonus.content_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block font-heading text-base font-bold uppercase tracking-wide text-accent hover:underline"
+        >
+          Access this bonus →
+        </a>
+      )}
     </div>
   );
 }

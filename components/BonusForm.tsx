@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { upsertBonus, deleteBonus } from "@/app/actions/content";
 import type { Bonus } from "@/lib/types";
 
-const EMPTY = { title: "", description: "", valueProp: "", displayOrder: 0 };
+const EMPTY = { title: "", description: "", valueProp: "", contentUrl: "", displayOrder: 0 };
 const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
 const INPUT = "border border-border bg-background px-3 py-2 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
@@ -14,6 +14,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
   const [title, setTitle] = useState(existingBonus?.title ?? EMPTY.title);
   const [description, setDescription] = useState(existingBonus?.description ?? EMPTY.description);
   const [valueProp, setValueProp] = useState(existingBonus?.value_prop ?? EMPTY.valueProp);
+  const [contentUrl, setContentUrl] = useState(existingBonus?.content_url ?? EMPTY.contentUrl);
   const [displayOrder, setDisplayOrder] = useState(existingBonus?.display_order ?? EMPTY.displayOrder);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -29,6 +30,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
           title,
           description,
           value_prop: valueProp,
+          content_url: contentUrl,
           display_order: displayOrder,
         });
 
@@ -36,6 +38,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
           setTitle(EMPTY.title);
           setDescription(EMPTY.description);
           setValueProp(EMPTY.valueProp);
+          setContentUrl(EMPTY.contentUrl);
           setDisplayOrder(EMPTY.displayOrder);
         }
         router.refresh();
@@ -87,6 +90,15 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
         <label className={`${LABEL} sm:col-span-2`}>
           Value prop (shown on the lock/reactivate card)
           <input value={valueProp} onChange={(event) => setValueProp(event.target.value)} className={INPUT} />
+        </label>
+        <label className={`${LABEL} sm:col-span-2`}>
+          Content URL (where the unlocked bonus actually lives — PDF, video, external link)
+          <input
+            value={contentUrl}
+            onChange={(event) => setContentUrl(event.target.value)}
+            placeholder="https://..."
+            className={INPUT}
+          />
         </label>
       </div>
 
