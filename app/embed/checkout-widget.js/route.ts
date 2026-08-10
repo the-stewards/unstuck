@@ -10,7 +10,11 @@ import { NextResponse } from "next/server";
 const WIDGET_JS = `
 (function () {
   var API_URL = "https://unstuck.stewards.loan/api/stripe/checkout";
-  var TARGET_ID = "unstuck-checkout-widget";
+  // Attribute selector, not an id — a page can only ever have one element
+  // with a given id, so getElementById would silently only ever find the
+  // first of two form cards on the same page. This lets any number of
+  // independent copies of the widget live on one page.
+  var SELECTOR = "[data-unstuck-checkout]";
 
   function buildWidget(target) {
     var input = document.createElement("input");
@@ -72,14 +76,19 @@ const WIDGET_JS = `
   }
 
   function init() {
-    var target = document.getElementById(TARGET_ID);
-    // Guards against the widget building twice into the same target — some
-    // CMS content editors (Brilliant Directories included) can end up
-    // executing an embedded script more than once (preview render + live
-    // render, or the block getting duplicated on save).
-    if (!target || target.dataset.unstuckReady === "true") return;
-    target.dataset.unstuckReady = "true";
-    buildWidget(target);
+    var targets = document.querySelectorAll(SELECTOR);
+    for (var i = 0; i < targets.length; i++) {
+      var target = targets[i];
+      // Guards against the widget building twice into the same target —
+      // some CMS content editors (Brilliant Directories included) can end
+      // up executing an embedded script more than once (preview render +
+      // live render, or the block getting duplicated on save), and this
+      // script itself may be included multiple times on one page (once per
+      // card). Each distinct target still only ever gets built once.
+      if (target.dataset.unstuckReady === "true") continue;
+      target.dataset.unstuckReady = "true";
+      buildWidget(target);
+    }
   }
 
   if (document.readyState === "loading") {
