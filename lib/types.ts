@@ -102,6 +102,13 @@ export interface Testimonial {
   active: boolean;
 }
 
+export interface CheckoutAttempt {
+  id: string;
+  email: string;
+  stripe_session_id: string;
+  created_at: string;
+}
+
 // `Relationships: []` and the empty `Views`/`Functions` maps are boilerplate
 // required to structurally match supabase-js's GenericSchema/GenericTable —
 // without them every query falls back to `never` row types.
@@ -124,6 +131,7 @@ export interface Database {
       bonuses: Table<Bonus, "title">;
       student_bonus_status: Table<StudentBonusStatus, "student_email" | "bonus_id">;
       testimonials: Table<Testimonial, "client_name" | "quote">;
+      checkout_attempts: Table<CheckoutAttempt, "email" | "stripe_session_id">;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

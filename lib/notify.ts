@@ -102,3 +102,30 @@ export async function sendAccessGrantedEmail(email: string): Promise<void> {
 
   if (error) throw error;
 }
+
+// Fires when webhook processing fails after signature verification — the
+// one place a failure would otherwise be silent (a paying customer gets no
+// access and nobody finds out until they email in). Deliberately best-effort:
+// if the alert itself fails, there's nothing further to do but log it, and
+// that must never mask or replace the original error being reported.
+export async function sendAdminAlert(subject: string, message: string): Promise<void> {
+  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+  if (adminEmails.length === 0) return;
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL!,
+      to: adminEmails,
+      subject: `[UNSTUCK Alert] ${subject}`,
+      html: `<p style="font-family:sans-serif;">${message}</p>`,
+    });
+
+    if (error) throw error;
+  } catch (err) {
+    console.error("Failed to send admin alert:", subject, err);
+  }
+}

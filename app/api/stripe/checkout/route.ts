@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Open to any origin: this route only ever creates a Stripe Checkout Session
 // (no cookies, no session, no secret data in the response — just a redirect
@@ -14,6 +15,20 @@ const CORS_HEADERS = {
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
+// Best-effort, isolated from the checkout flow entirely — powers the admin
+// "abandoned checkout" list (see lib/admin-data.ts). Must never affect
+// whether checkout succeeds: wrapped in its own try/catch (not just relying
+// on supabase-js's {error} field) since admin client construction or the
+// network call itself can throw, e.g. checkout_attempts not existing yet
+// (migration 0003 unapplied) or during tests where Supabase isn't mocked.
+async function logCheckoutAttempt(email: string, sessionId: string): Promise<void> {
+  try {
+    await createAdminClient().from("checkout_attempts").insert({ email, stripe_session_id: sessionId });
+  } catch {
+    // Intentionally ignored.
+  }
 }
 
 export async function POST(request: Request) {
@@ -47,6 +62,8 @@ export async function POST(request: Request) {
         { status: 500, headers: CORS_HEADERS }
       );
     }
+
+    await logCheckoutAttempt(email, session.id);
 
     return NextResponse.json({ url: session.url }, { headers: CORS_HEADERS });
   } catch {

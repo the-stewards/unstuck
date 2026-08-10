@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { grantAccess } from "@/lib/access";
-import { sendAccessGrantedEmail } from "@/lib/notify";
+import { sendAccessGrantedEmail, sendAdminAlert } from "@/lib/notify";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -56,11 +56,24 @@ export async function POST(request: Request) {
   // the order insert ran first as a dedup gate; if grantAccess or the email
   // then threw, the retry would hit the order's unique constraint and skip
   // re-attempting either one, permanently.)
-  const result = await grantAccess({
-    email: normalizedEmail,
-    source: "stripe_purchase",
-    stripeSessionId: session.id,
-  });
+  let result: Awaited<ReturnType<typeof grantAccess>>;
+  try {
+    result = await grantAccess({
+      email: normalizedEmail,
+      source: "stripe_purchase",
+      stripeSessionId: session.id,
+    });
+  } catch (err) {
+    // The one failure mode that must never be silent — a customer paid and
+    // got nothing, with no error visible anywhere but server logs. Alert
+    // now, still 500 so Stripe's own retry schedule gets a chance to
+    // recover from anything transient.
+    await sendAdminAlert(
+      "Webhook failed to grant access",
+      `Checkout session <code>${session.id}</code> for <strong>${normalizedEmail}</strong> failed: ${(err as Error).message}`
+    );
+    return NextResponse.json({ error: "Failed to grant access." }, { status: 500 });
+  }
 
   if (result.granted) {
     try {
