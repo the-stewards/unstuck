@@ -73,7 +73,12 @@ const WIDGET_JS = `
 
   function init() {
     var target = document.getElementById(TARGET_ID);
-    if (!target) return;
+    // Guards against the widget building twice into the same target — some
+    // CMS content editors (Brilliant Directories included) can end up
+    // executing an embedded script more than once (preview render + live
+    // render, or the block getting duplicated on save).
+    if (!target || target.dataset.unstuckReady === "true") return;
+    target.dataset.unstuckReady = "true";
     buildWidget(target);
   }
 
