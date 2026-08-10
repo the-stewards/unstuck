@@ -17,22 +17,23 @@ export function AdminGrantForm() {
     setGranted(false);
 
     startTransition(async () => {
-      try {
-        setExisting(await checkExistingAccess(email));
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await checkExistingAccess(email);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      setExisting(result.data);
     });
   }
 
   function handleGrant() {
     startTransition(async () => {
-      try {
-        const result = await grantManualAccess(email);
-        setGranted(result.granted);
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await grantManualAccess(email);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      setGranted(result.data.granted);
     });
   }
 

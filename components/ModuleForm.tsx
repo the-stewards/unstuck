@@ -26,27 +26,28 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
     setError(null);
 
     startTransition(async () => {
-      try {
-        await upsertModule({
-          id: existingModule?.id,
-          title,
-          description,
-          dubb_url: dubbEmbed,
-          duration_seconds: durationSeconds,
-          display_order: displayOrder,
-        });
+      const result = await upsertModule({
+        id: existingModule?.id,
+        title,
+        description,
+        dubb_url: dubbEmbed,
+        duration_seconds: durationSeconds,
+        display_order: displayOrder,
+      });
 
-        if (!existingModule) {
-          setTitle(EMPTY.title);
-          setDescription(EMPTY.description);
-          setDubbEmbed(EMPTY.dubbEmbed);
-          setDurationSeconds(EMPTY.durationSeconds);
-          setDisplayOrder(EMPTY.displayOrder);
-        }
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+
+      if (!existingModule) {
+        setTitle(EMPTY.title);
+        setDescription(EMPTY.description);
+        setDubbEmbed(EMPTY.dubbEmbed);
+        setDurationSeconds(EMPTY.durationSeconds);
+        setDisplayOrder(EMPTY.displayOrder);
+      }
+      router.refresh();
     });
   }
 
@@ -55,12 +56,12 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
     if (!confirm(`Delete "${existingModule.title}"? This also deletes its resources.`)) return;
 
     startTransition(async () => {
-      try {
-        await deleteModule(existingModule.id);
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await deleteModule(existingModule.id);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 

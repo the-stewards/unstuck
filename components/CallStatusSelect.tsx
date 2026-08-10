@@ -11,10 +11,15 @@ export function CallStatusSelect({ email, status }: { email: string; status: Cal
   const [isPending, startTransition] = useTransition();
 
   function handleChange(event: ChangeEvent<HTMLSelectElement>) {
+    const previous = value;
     const next = event.target.value as CallStatus;
     setValue(next);
     startTransition(async () => {
-      await setCallStatus(email, next);
+      const result = await setCallStatus(email, next);
+      if (!result.success) {
+        alert(result.error);
+        setValue(previous);
+      }
     });
   }
 

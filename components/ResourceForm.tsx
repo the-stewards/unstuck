@@ -30,26 +30,27 @@ export function ResourceForm({
     setError(null);
 
     startTransition(async () => {
-      try {
-        await upsertResource({
-          id: existingResource?.id,
-          module_id: moduleId,
-          title,
-          type,
-          file_url: fileUrl,
-          display_order: displayOrder,
-        });
+      const result = await upsertResource({
+        id: existingResource?.id,
+        module_id: moduleId,
+        title,
+        type,
+        file_url: fileUrl,
+        display_order: displayOrder,
+      });
 
-        if (!existingResource) {
-          setTitle(EMPTY.title);
-          setType(EMPTY.type);
-          setFileUrl(EMPTY.fileUrl);
-          setDisplayOrder(EMPTY.displayOrder);
-        }
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+
+      if (!existingResource) {
+        setTitle(EMPTY.title);
+        setType(EMPTY.type);
+        setFileUrl(EMPTY.fileUrl);
+        setDisplayOrder(EMPTY.displayOrder);
+      }
+      router.refresh();
     });
   }
 
@@ -58,12 +59,12 @@ export function ResourceForm({
     if (!confirm(`Delete "${existingResource.title}"?`)) return;
 
     startTransition(async () => {
-      try {
-        await deleteResource(existingResource.id);
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await deleteResource(existingResource.id);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 

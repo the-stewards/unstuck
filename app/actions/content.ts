@@ -1,23 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdminEmail } from "@/lib/admin";
+import { runAdminAction, type ActionResult } from "@/lib/action-result";
 import type { ResourceType } from "@/lib/types";
-
-async function requireAdminEmail(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user?.email || !isAdminEmail(user.email)) {
-    throw new Error("Not authorized.");
-  }
-
-  return user.email;
-}
 
 interface ModuleInput {
   id?: string;
@@ -44,26 +30,28 @@ function assertSafeDubbEmbed(html: string) {
   }
 }
 
-export async function upsertModule(input: ModuleInput) {
-  await requireAdminEmail();
-  assertSafeDubbEmbed(input.dubb_url);
-  const supabase = createAdminClient();
-  const { id, ...fields } = input;
+export async function upsertModule(input: ModuleInput): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    assertSafeDubbEmbed(input.dubb_url);
+    const supabase = createAdminClient();
+    const { id, ...fields } = input;
 
-  const { error } = id
-    ? await supabase.from("modules").update(fields).eq("id", id)
-    : await supabase.from("modules").insert(fields);
+    const { error } = id
+      ? await supabase.from("modules").update(fields).eq("id", id)
+      : await supabase.from("modules").insert(fields);
 
-  if (error) throw error;
-  revalidatePath("/admin/modules");
+    if (error) throw error;
+    revalidatePath("/admin/modules");
+  });
 }
 
-export async function deleteModule(id: string) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { error } = await supabase.from("modules").delete().eq("id", id);
-  if (error) throw error;
-  revalidatePath("/admin/modules");
+export async function deleteModule(id: string): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("modules").delete().eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/modules");
+  });
 }
 
 interface ResourceInput {
@@ -75,25 +63,27 @@ interface ResourceInput {
   display_order: number;
 }
 
-export async function upsertResource(input: ResourceInput) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { id, ...fields } = input;
+export async function upsertResource(input: ResourceInput): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { id, ...fields } = input;
 
-  const { error } = id
-    ? await supabase.from("resources").update(fields).eq("id", id)
-    : await supabase.from("resources").insert(fields);
+    const { error } = id
+      ? await supabase.from("resources").update(fields).eq("id", id)
+      : await supabase.from("resources").insert(fields);
 
-  if (error) throw error;
-  revalidatePath("/admin/modules");
+    if (error) throw error;
+    revalidatePath("/admin/modules");
+  });
 }
 
-export async function deleteResource(id: string) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { error } = await supabase.from("resources").delete().eq("id", id);
-  if (error) throw error;
-  revalidatePath("/admin/modules");
+export async function deleteResource(id: string): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("resources").delete().eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/modules");
+  });
 }
 
 interface BonusInput {
@@ -105,25 +95,27 @@ interface BonusInput {
   display_order: number;
 }
 
-export async function upsertBonus(input: BonusInput) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { id, ...fields } = input;
+export async function upsertBonus(input: BonusInput): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { id, ...fields } = input;
 
-  const { error } = id
-    ? await supabase.from("bonuses").update(fields).eq("id", id)
-    : await supabase.from("bonuses").insert(fields);
+    const { error } = id
+      ? await supabase.from("bonuses").update(fields).eq("id", id)
+      : await supabase.from("bonuses").insert(fields);
 
-  if (error) throw error;
-  revalidatePath("/admin/bonuses");
+    if (error) throw error;
+    revalidatePath("/admin/bonuses");
+  });
 }
 
-export async function deleteBonus(id: string) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { error } = await supabase.from("bonuses").delete().eq("id", id);
-  if (error) throw error;
-  revalidatePath("/admin/bonuses");
+export async function deleteBonus(id: string): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("bonuses").delete().eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/bonuses");
+  });
 }
 
 interface TestimonialInput {
@@ -136,25 +128,27 @@ interface TestimonialInput {
   active: boolean;
 }
 
-export async function upsertTestimonial(input: TestimonialInput) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { id, ...fields } = input;
+export async function upsertTestimonial(input: TestimonialInput): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { id, ...fields } = input;
 
-  const { error } = id
-    ? await supabase.from("testimonials").update(fields).eq("id", id)
-    : await supabase.from("testimonials").insert(fields);
+    const { error } = id
+      ? await supabase.from("testimonials").update(fields).eq("id", id)
+      : await supabase.from("testimonials").insert(fields);
 
-  if (error) throw error;
-  revalidatePath("/admin/testimonials");
+    if (error) throw error;
+    revalidatePath("/admin/testimonials");
+  });
 }
 
-export async function deleteTestimonial(id: string) {
-  await requireAdminEmail();
-  const supabase = createAdminClient();
-  const { error } = await supabase.from("testimonials").delete().eq("id", id);
-  if (error) throw error;
-  revalidatePath("/admin/testimonials");
+export async function deleteTestimonial(id: string): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/testimonials");
+  });
 }
 
 type OrderedTable = "modules" | "resources" | "bonuses" | "testimonials";
@@ -205,26 +199,30 @@ async function swapDisplayOrder(
   if (swapError) throw swapError;
 }
 
-export async function moveModule(id: string, direction: "up" | "down") {
-  await requireAdminEmail();
-  await swapDisplayOrder("modules", id, direction);
-  revalidatePath("/admin/modules");
+export async function moveModule(id: string, direction: "up" | "down"): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    await swapDisplayOrder("modules", id, direction);
+    revalidatePath("/admin/modules");
+  });
 }
 
-export async function moveResource(id: string, moduleId: string, direction: "up" | "down") {
-  await requireAdminEmail();
-  await swapDisplayOrder("resources", id, direction, { column: "module_id", value: moduleId });
-  revalidatePath("/admin/modules");
+export async function moveResource(id: string, moduleId: string, direction: "up" | "down"): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    await swapDisplayOrder("resources", id, direction, { column: "module_id", value: moduleId });
+    revalidatePath("/admin/modules");
+  });
 }
 
-export async function moveBonus(id: string, direction: "up" | "down") {
-  await requireAdminEmail();
-  await swapDisplayOrder("bonuses", id, direction);
-  revalidatePath("/admin/bonuses");
+export async function moveBonus(id: string, direction: "up" | "down"): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    await swapDisplayOrder("bonuses", id, direction);
+    revalidatePath("/admin/bonuses");
+  });
 }
 
-export async function moveTestimonial(id: string, direction: "up" | "down") {
-  await requireAdminEmail();
-  await swapDisplayOrder("testimonials", id, direction);
-  revalidatePath("/admin/testimonials");
+export async function moveTestimonial(id: string, direction: "up" | "down"): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    await swapDisplayOrder("testimonials", id, direction);
+    revalidatePath("/admin/testimonials");
+  });
 }

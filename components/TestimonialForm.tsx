@@ -32,29 +32,30 @@ export function TestimonialForm({ testimonial: existing }: { testimonial?: Testi
     setError(null);
 
     startTransition(async () => {
-      try {
-        await upsertTestimonial({
-          id: existing?.id,
-          client_name: clientName,
-          quote,
-          result_stat: resultStat,
-          photo_url: photoUrl,
-          display_order: displayOrder,
-          active,
-        });
+      const result = await upsertTestimonial({
+        id: existing?.id,
+        client_name: clientName,
+        quote,
+        result_stat: resultStat,
+        photo_url: photoUrl,
+        display_order: displayOrder,
+        active,
+      });
 
-        if (!existing) {
-          setClientName(EMPTY.clientName);
-          setQuote(EMPTY.quote);
-          setResultStat(EMPTY.resultStat);
-          setPhotoUrl(EMPTY.photoUrl);
-          setDisplayOrder(EMPTY.displayOrder);
-          setActive(EMPTY.active);
-        }
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+
+      if (!existing) {
+        setClientName(EMPTY.clientName);
+        setQuote(EMPTY.quote);
+        setResultStat(EMPTY.resultStat);
+        setPhotoUrl(EMPTY.photoUrl);
+        setDisplayOrder(EMPTY.displayOrder);
+        setActive(EMPTY.active);
+      }
+      router.refresh();
     });
   }
 
@@ -63,12 +64,12 @@ export function TestimonialForm({ testimonial: existing }: { testimonial?: Testi
     if (!confirm(`Delete this testimonial from ${existing.client_name}?`)) return;
 
     startTransition(async () => {
-      try {
-        await deleteTestimonial(existing.id);
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await deleteTestimonial(existing.id);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 

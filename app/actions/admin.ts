@@ -1,48 +1,36 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { grantAccess, getAccessGrant } from "@/lib/access";
 import { sendAccessGrantedEmail } from "@/lib/notify";
-import { isAdminEmail } from "@/lib/admin";
-import type { CallStatus } from "@/lib/types";
-
-async function requireAdminEmail(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user?.email || !isAdminEmail(user.email)) {
-    throw new Error("Not authorized.");
-  }
-
-  return user.email;
-}
+import { runAdminAction, type ActionResult } from "@/lib/action-result";
+import type { AccessGrant, CallStatus } from "@/lib/types";
 
 // Admin tool always checks for an existing grant first so a sales call never
 // results in an accidental double-grant — the caller renders whatever this
 // returns before offering the "grant" button.
-export async function checkExistingAccess(email: string) {
-  await requireAdminEmail();
-  return getAccessGrant(email.trim().toLowerCase());
+export async function checkExistingAccess(email: string): Promise<ActionResult<AccessGrant | null>> {
+  return runAdminAction(() => getAccessGrant(email.trim().toLowerCase()));
 }
 
-export async function grantManualAccess(email: string) {
-  const adminEmail = await requireAdminEmail();
-  const normalizedEmail = email.trim().toLowerCase();
+export async function grantManualAccess(
+  email: string
+): Promise<ActionResult<{ granted: boolean; alreadyGranted: boolean }>> {
+  return runAdminAction(async (adminEmail) => {
+    const normalizedEmail = email.trim().toLowerCase();
 
-  const result = await grantAccess({
-    email: normalizedEmail,
-    source: "manual_comp",
-    grantedBy: adminEmail,
+    const result = await grantAccess({
+      email: normalizedEmail,
+      source: "manual_comp",
+      grantedBy: adminEmail,
+    });
+
+    if (result.granted) {
+      await sendAccessGrantedEmail(normalizedEmail);
+    }
+
+    return result;
   });
-
-  if (result.granted) {
-    await sendAccessGrantedEmail(normalizedEmail);
-  }
-
-  return result;
 }
 
 // Reactivates every bonus this student hasn't already gotten some other
@@ -87,22 +75,23 @@ async function reactivateBonuses(studentEmail: string): Promise<void> {
   if (upsertError) throw upsertError;
 }
 
-export async function setCallStatus(studentEmail: string, status: CallStatus) {
-  await requireAdminEmail();
-  const normalizedEmail = studentEmail.trim().toLowerCase();
+export async function setCallStatus(studentEmail: string, status: CallStatus): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const normalizedEmail = studentEmail.trim().toLowerCase();
 
-  const supabase = createAdminClient();
-  const { error } = await supabase
-    .from("students")
-    .update({ call_status: status })
-    .eq("email", normalizedEmail);
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("students")
+      .update({ call_status: status })
+      .eq("email", normalizedEmail);
 
-  if (error) throw error;
+    if (error) throw error;
 
-  // Marking a call "completed" is what actually unlocks bonuses — booking
-  // alone doesn't (see CtaBanner's copy for the "booked" state: "no need to
-  // do anything else here", not "you're unlocked").
-  if (status === "completed") {
-    await reactivateBonuses(normalizedEmail);
-  }
+    // Marking a call "completed" is what actually unlocks bonuses — booking
+    // alone doesn't (see CtaBanner's copy for the "booked" state: "no need to
+    // do anything else here", not "you're unlocked").
+    if (status === "completed") {
+      await reactivateBonuses(normalizedEmail);
+    }
+  });
 }

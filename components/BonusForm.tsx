@@ -24,27 +24,28 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
     setError(null);
 
     startTransition(async () => {
-      try {
-        await upsertBonus({
-          id: existingBonus?.id,
-          title,
-          description,
-          value_prop: valueProp,
-          content_url: contentUrl,
-          display_order: displayOrder,
-        });
+      const result = await upsertBonus({
+        id: existingBonus?.id,
+        title,
+        description,
+        value_prop: valueProp,
+        content_url: contentUrl,
+        display_order: displayOrder,
+      });
 
-        if (!existingBonus) {
-          setTitle(EMPTY.title);
-          setDescription(EMPTY.description);
-          setValueProp(EMPTY.valueProp);
-          setContentUrl(EMPTY.contentUrl);
-          setDisplayOrder(EMPTY.displayOrder);
-        }
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+
+      if (!existingBonus) {
+        setTitle(EMPTY.title);
+        setDescription(EMPTY.description);
+        setValueProp(EMPTY.valueProp);
+        setContentUrl(EMPTY.contentUrl);
+        setDisplayOrder(EMPTY.displayOrder);
+      }
+      router.refresh();
     });
   }
 
@@ -53,12 +54,12 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
     if (!confirm(`Delete "${existingBonus.title}"?`)) return;
 
     startTransition(async () => {
-      try {
-        await deleteBonus(existingBonus.id);
-        router.refresh();
-      } catch (err) {
-        setError((err as Error).message);
+      const result = await deleteBonus(existingBonus.id);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 

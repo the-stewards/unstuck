@@ -23,14 +23,18 @@ export function ReorderButtons({ kind, id, moduleId, disableUp, disableDown }: R
 
   function handle(direction: "up" | "down") {
     startTransition(async () => {
-      if (kind === "module") {
-        await moveModule(id, direction);
-      } else if (kind === "resource") {
-        await moveResource(id, moduleId!, direction);
-      } else if (kind === "bonus") {
-        await moveBonus(id, direction);
-      } else {
-        await moveTestimonial(id, direction);
+      const result =
+        kind === "module"
+          ? await moveModule(id, direction)
+          : kind === "resource"
+            ? await moveResource(id, moduleId!, direction)
+            : kind === "bonus"
+              ? await moveBonus(id, direction)
+              : await moveTestimonial(id, direction);
+
+      if (!result.success) {
+        alert(result.error);
+        return;
       }
       router.refresh();
     });
