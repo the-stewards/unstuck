@@ -2,6 +2,13 @@ import Link from "next/link";
 import type { CallStatus } from "@/lib/types";
 
 const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || "#";
+const PHONE_DISPLAY = "614-767-5273";
+const PHONE_HREF = "tel:+16147675273";
+
+interface CtaEntry {
+  label: string;
+  href: string;
+}
 
 interface CopyEntry {
   label: string;
@@ -9,7 +16,7 @@ interface CopyEntry {
   headingOrange: string;
   headingPost: string;
   body: string;
-  cta: string | null;
+  cta: CtaEntry | null;
 }
 
 const COPY: Record<CallStatus, CopyEntry> = {
@@ -19,7 +26,7 @@ const COPY: Record<CallStatus, CopyEntry> = {
     headingOrange: "Activate",
     headingPost: " Your Bonuses",
     body: "The bonuses you missed are still locked — unless you get on a call.",
-    cta: "Book a Call",
+    cta: { label: "Book a Call", href: BOOKING_URL },
   },
   booked: {
     label: "You're In",
@@ -35,7 +42,7 @@ const COPY: Record<CallStatus, CopyEntry> = {
     headingOrange: "Calling",
     headingPost: " In",
     body: "Reach out any time if something's still unclear.",
-    cta: null,
+    cta: { label: `Call ${PHONE_DISPLAY}`, href: PHONE_HREF },
   },
 };
 
@@ -61,12 +68,11 @@ export function CtaBanner({ callStatus }: { callStatus: CallStatus }) {
       </div>
       {copy.cta && (
         <Link
-          href={BOOKING_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={copy.cta.href}
+          {...(copy.cta.href.startsWith("tel:") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
           className="shrink-0 bg-accent px-8 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90"
         >
-          {copy.cta}
+          {copy.cta.label}
         </Link>
       )}
     </div>
