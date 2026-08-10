@@ -29,16 +29,56 @@ async function generateMagicLink(email: string): Promise<string> {
   return data.properties.action_link;
 }
 
+// Steward Design Schema banner block, adapted for email: table layout and
+// inline styles only (no flexbox/grid — most clients, Outlook especially,
+// don't support them), font stacks with Barlow Condensed/Frank Ruhl Libre
+// first and system fallbacks second since custom @font-face support is
+// inconsistent across mail clients.
 function accessEmailHtml(magicLink: string): string {
   return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #111;">
-      <h1 style="font-size: 22px;">You're in.</h1>
-      <p>Your private UNSTUCK Starter Kit is ready. Click below to jump straight in — no password needed.</p>
-      <p style="margin: 24px 0;">
-        <a href="${magicLink}" style="display:inline-block;padding:12px 24px;background:#111;color:#fff;text-decoration:none;border-radius:6px;">Enter UNSTUCK</a>
-      </p>
-      <p style="color:#666;font-size:13px;">Keep this email — it's your login link any time you come back.</p>
-    </div>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>You're in</title>
+  </head>
+  <body style="margin:0; padding:0; background:#fffae8;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffae8; padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#403d3d; border-radius:0 3px 3px 0; border-left:4px solid #f76732;">
+            <tr>
+              <td style="padding:40px;">
+                <p style="margin:0 0 12px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.3em; text-transform:uppercase; color:#f76732;">
+                  Unstuck
+                </p>
+                <h1 style="margin:0 0 20px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:32px; line-height:1.05; letter-spacing:-0.01em; text-transform:uppercase; color:#fffae8;">
+                  You&rsquo;re <span style="color:#f76732;">In</span>
+                </h1>
+                <p style="margin:0 0 28px 0; font-family:'Frank Ruhl Libre', Georgia, serif; font-weight:300; font-size:18px; line-height:1.75; color:rgba(255,250,232,0.85);">
+                  Your private UNSTUCK Starter Kit is ready. Click below to jump straight in &mdash; no password needed.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#f76732; border-radius:2px;">
+                      <a href="${magicLink}" style="display:inline-block; padding:16px 40px; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:18px; letter-spacing:0.1em; text-transform:uppercase; color:#fffae8; text-decoration:none;">
+                        Enter Unstuck
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.05em; text-transform:uppercase; color:rgba(255,250,232,0.4);">
+                  Keep this email &mdash; it&rsquo;s your login link any time you come back.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
   `;
 }
 
