@@ -2,7 +2,12 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 
-export function PurchaseButton({ initialEmail = "" }: { initialEmail?: string }) {
+interface PurchaseButtonProps {
+  initialEmail?: string;
+  className?: string;
+}
+
+export function PurchaseButton({ initialEmail = "", className = "mt-6 flex flex-col gap-3" }: PurchaseButtonProps) {
   const [email, setEmail] = useState(initialEmail);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -29,7 +34,7 @@ export function PurchaseButton({ initialEmail = "" }: { initialEmail?: string })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+    <form onSubmit={handleSubmit} className={className}>
       <input
         type="email"
         value={email}
