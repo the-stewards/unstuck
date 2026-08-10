@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runAdminAction, type ActionResult } from "@/lib/action-result";
+import { assertSafeDubbEmbed } from "@/lib/dubb-embed";
 import type { ResourceType } from "@/lib/types";
 
 interface ModuleInput {
@@ -18,18 +19,6 @@ interface ModuleInput {
 // side (see components/DubbEmbed.tsx) — safe only because writes are
 // admin-gated. This allowlist is a second layer: even a compromised admin
 // session can only ever save a plain Dubb iframe, not arbitrary HTML/script.
-const DUBB_IFRAME_PATTERN = /<iframe[^>]*\ssrc=["']https:\/\/dubb\.com\/[^"']*["'][^>]*>/i;
-const FORBIDDEN_MARKUP_PATTERN = /<script|<object|<embed\b|<link|<meta|<base|<form|<style|javascript:|on\w+\s*=/i;
-
-function assertSafeDubbEmbed(html: string) {
-  if (!DUBB_IFRAME_PATTERN.test(html)) {
-    throw new Error("Embed code must include an <iframe> with a dubb.com src URL.");
-  }
-  if (FORBIDDEN_MARKUP_PATTERN.test(html)) {
-    throw new Error("Embed code contains disallowed markup (scripts, event handlers, or other tags).");
-  }
-}
-
 export async function upsertModule(input: ModuleInput): Promise<ActionResult> {
   return runAdminAction(async () => {
     assertSafeDubbEmbed(input.dubb_url);
