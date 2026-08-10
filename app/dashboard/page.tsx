@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { ModuleCard } from "@/components/ModuleCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CtaBanner } from "@/components/CtaBanner";
+import { CourseCompleteBanner } from "@/components/CourseCompleteBanner";
 import { BonusLock } from "@/components/BonusLock";
 import { TestimonialBlock } from "@/components/TestimonialBlock";
 
@@ -55,6 +56,12 @@ export default async function DashboardPage() {
             <p className="font-body text-base text-muted">No modules published yet.</p>
           )}
         </div>
+
+        {courseProgress.percent === 100 && (
+          <div className="mt-10">
+            <CourseCompleteBanner />
+          </div>
+        )}
 
         <div className="mt-10">
           <CtaBanner callStatus={callStatus} />
