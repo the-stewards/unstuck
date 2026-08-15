@@ -3,9 +3,16 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { upsertBonus, deleteBonus } from "@/app/actions/content";
-import type { Bonus } from "@/lib/types";
+import type { Bonus, ContentStatus } from "@/lib/types";
 
-const EMPTY = { title: "", description: "", valueProp: "", contentUrl: "", displayOrder: 0 };
+const EMPTY = {
+  title: "",
+  description: "",
+  valueProp: "",
+  contentUrl: "",
+  displayOrder: 0,
+  status: "published" as ContentStatus,
+};
 const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
 const INPUT = "border border-border bg-background px-3 py-2 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
@@ -16,6 +23,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
   const [valueProp, setValueProp] = useState(existingBonus?.value_prop ?? EMPTY.valueProp);
   const [contentUrl, setContentUrl] = useState(existingBonus?.content_url ?? EMPTY.contentUrl);
   const [displayOrder, setDisplayOrder] = useState(existingBonus?.display_order ?? EMPTY.displayOrder);
+  const [status, setStatus] = useState<ContentStatus>(existingBonus?.status ?? EMPTY.status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -31,6 +39,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
         value_prop: valueProp,
         content_url: contentUrl,
         display_order: displayOrder,
+        status,
       });
 
       if (!result.success) {
@@ -44,6 +53,7 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
         setValueProp(EMPTY.valueProp);
         setContentUrl(EMPTY.contentUrl);
         setDisplayOrder(EMPTY.displayOrder);
+        setStatus(EMPTY.status);
       }
       router.refresh();
     });
@@ -100,6 +110,17 @@ export function BonusForm({ bonus: existingBonus }: { bonus?: Bonus }) {
             placeholder="https://..."
             className={INPUT}
           />
+        </label>
+        <label className={LABEL}>
+          Status
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ContentStatus)}
+            className={INPUT}
+          >
+            <option value="published">Published</option>
+            <option value="coming_soon">Coming soon</option>
+          </select>
         </label>
       </div>
 

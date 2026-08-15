@@ -23,7 +23,9 @@ export default async function DashboardPage() {
 
   const callStatus = student?.call_status ?? "not_booked";
   const nextModuleId = modules.find(
-    (courseModule) => (progressMap.get(courseModule.id) ?? "not_started") !== "complete"
+    (courseModule) =>
+      courseModule.status === "published" &&
+      (progressMap.get(courseModule.id) ?? "not_started") !== "complete"
   )?.id;
 
   return (
@@ -46,6 +48,7 @@ export default async function DashboardPage() {
               title={courseModule.title}
               description={courseModule.description}
               status={progressMap.get(courseModule.id) ?? "not_started"}
+              contentStatus={courseModule.status}
               isNext={courseModule.id === nextModuleId}
             />
           ))}

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runAdminAction, type ActionResult } from "@/lib/action-result";
 import { assertSafeDubbEmbed } from "@/lib/dubb-embed";
-import type { ResourceType } from "@/lib/types";
+import type { ContentStatus, ResourceType } from "@/lib/types";
 
 interface ModuleInput {
   id?: string;
@@ -13,6 +13,7 @@ interface ModuleInput {
   dubb_url: string;
   duration_seconds: number;
   display_order: number;
+  status: ContentStatus;
 }
 
 // The embed field is rendered with dangerouslySetInnerHTML on the student
@@ -82,6 +83,7 @@ interface BonusInput {
   value_prop: string;
   content_url: string;
   display_order: number;
+  status: ContentStatus;
 }
 
 export async function upsertBonus(input: BonusInput): Promise<ActionResult> {

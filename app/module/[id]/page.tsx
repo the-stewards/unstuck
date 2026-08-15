@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { requireStudent } from "@/lib/session";
 import { getModule, getModules, getResourcesForModule } from "@/lib/course";
@@ -24,9 +24,17 @@ export default async function ModulePage({ params }: PageProps<"/module/[id]">) 
     notFound();
   }
 
-  const currentIndex = allModules.findIndex((m) => m.id === id);
-  const prevModule = currentIndex > 0 ? allModules[currentIndex - 1] : undefined;
-  const nextModule = currentIndex >= 0 ? allModules[currentIndex + 1] : undefined;
+  // Direct-link the URL before it's published (e.g. an old bookmark, or the
+  // admin hasn't flipped it live yet) and this bounces back — the same
+  // safety net the dashboard's own "coming soon" cards give by not linking.
+  if (courseModule.status === "coming_soon") {
+    redirect("/dashboard");
+  }
+
+  const publishedModules = allModules.filter((m) => m.status === "published");
+  const currentIndex = publishedModules.findIndex((m) => m.id === id);
+  const prevModule = currentIndex > 0 ? publishedModules[currentIndex - 1] : undefined;
+  const nextModule = currentIndex >= 0 ? publishedModules[currentIndex + 1] : undefined;
   const status = progress?.status ?? "not_started";
 
   return (

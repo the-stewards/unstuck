@@ -19,7 +19,7 @@ export async function listStudentsWithProgress(): Promise<StudentWithProgress[]>
     { data: progressRows, error: progressError },
   ] = await Promise.all([
     supabase.from("students").select("*").order("created_at", { ascending: false }),
-    supabase.from("modules").select("id"),
+    supabase.from("modules").select("id").eq("status", "published"),
     supabase.from("progress").select("student_id").eq("status", "complete"),
   ]);
 
@@ -112,7 +112,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     { data: orders, error: ordersError },
   ] = await Promise.all([
     supabase.from("access_grants").select("source"),
-    supabase.from("modules").select("id"),
+    supabase.from("modules").select("id").eq("status", "published"),
     supabase.from("progress").select("student_id, status"),
     supabase.from("orders").select("amount_cents, created_at"),
   ]);

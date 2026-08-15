@@ -19,6 +19,7 @@ export type ProgressStatus = "not_started" | "in_progress" | "complete";
 export type ResourceType = "checklist" | "toolkit" | "guide" | "script";
 export type AccessSource = "stripe_purchase" | "manual_comp";
 export type BonusStatus = "locked_missed" | "reactivated" | "included_at_purchase";
+export type ContentStatus = "published" | "coming_soon";
 
 export interface Student {
   id: string;
@@ -36,6 +37,7 @@ export interface Module {
   dubb_url: string;
   duration_seconds: number;
   display_order: number;
+  status: ContentStatus;
   created_at: string;
 }
 
@@ -84,6 +86,7 @@ export interface Bonus {
   /** Where the unlocked bonus actually lives (PDF, video, external link). Null until an admin sets it. */
   content_url: string | null;
   display_order: number;
+  status: ContentStatus;
 }
 
 export interface StudentBonusStatus {

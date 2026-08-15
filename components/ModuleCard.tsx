@@ -1,11 +1,12 @@
 import Link from "next/link";
-import type { ProgressStatus } from "@/lib/types";
+import type { ContentStatus, ProgressStatus } from "@/lib/types";
 
 interface ModuleCardProps {
   id: string;
   title: string;
   description: string | null;
   status: ProgressStatus;
+  contentStatus: ContentStatus;
   isNext?: boolean;
 }
 
@@ -28,7 +29,32 @@ const NEXT_LABEL: Record<ProgressStatus, string> = {
 // exception is isNext: the first not-yet-complete module in order gets the
 // orange top border + orange label treatment instead, so a student never has
 // to guess which card to click.
-export function ModuleCard({ id, title, description, status, isNext = false }: ModuleCardProps) {
+export function ModuleCard({
+  id,
+  title,
+  description,
+  status,
+  contentStatus,
+  isNext = false,
+}: ModuleCardProps) {
+  if (contentStatus === "coming_soon") {
+    return (
+      <div className="flex items-center justify-between gap-4 border-t-[3px] border-border bg-card px-5 py-4 opacity-60">
+        <div>
+          <h3 className="font-heading text-[22px] font-bold uppercase leading-tight text-foreground">
+            {title}
+          </h3>
+          {description && (
+            <p className="mt-1 font-body text-base font-light text-muted">{description}</p>
+          )}
+        </div>
+        <span className="shrink-0 font-heading text-base font-bold uppercase tracking-wide text-muted-light">
+          Coming soon
+        </span>
+      </div>
+    );
+  }
+
   return (
     <Link
       href={`/module/${id}`}

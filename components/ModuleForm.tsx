@@ -3,9 +3,16 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { upsertModule, deleteModule } from "@/app/actions/content";
-import type { Module } from "@/lib/types";
+import type { ContentStatus, Module } from "@/lib/types";
 
-const EMPTY = { title: "", description: "", dubbEmbed: "", durationSeconds: 0, displayOrder: 0 };
+const EMPTY = {
+  title: "",
+  description: "",
+  dubbEmbed: "",
+  durationSeconds: 0,
+  displayOrder: 0,
+  status: "published" as ContentStatus,
+};
 const LABEL = "flex flex-col gap-1 font-heading text-base font-bold uppercase tracking-wide text-muted-light";
 const INPUT = "border border-border bg-background px-3 py-2 font-body text-base text-foreground focus:border-accent focus:outline-none";
 
@@ -18,6 +25,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
     existingModule?.duration_seconds ?? EMPTY.durationSeconds
   );
   const [displayOrder, setDisplayOrder] = useState(existingModule?.display_order ?? EMPTY.displayOrder);
+  const [status, setStatus] = useState<ContentStatus>(existingModule?.status ?? EMPTY.status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -33,6 +41,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
         dubb_url: dubbEmbed,
         duration_seconds: durationSeconds,
         display_order: displayOrder,
+        status,
       });
 
       if (!result.success) {
@@ -46,6 +55,7 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
         setDubbEmbed(EMPTY.dubbEmbed);
         setDurationSeconds(EMPTY.durationSeconds);
         setDisplayOrder(EMPTY.displayOrder);
+        setStatus(EMPTY.status);
       }
       router.refresh();
     });
@@ -111,6 +121,17 @@ export function ModuleForm({ module: existingModule }: { module?: Module }) {
             onChange={(event) => setDisplayOrder(Number(event.target.value))}
             className={INPUT}
           />
+        </label>
+        <label className={LABEL}>
+          Status
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as ContentStatus)}
+            className={INPUT}
+          >
+            <option value="published">Published</option>
+            <option value="coming_soon">Coming soon</option>
+          </select>
         </label>
       </div>
 

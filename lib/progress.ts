@@ -129,16 +129,17 @@ export async function getCourseProgress(studentId: string) {
 
   const [{ data: modules, error: modulesError }, { data: progressRows, error: progressError }] =
     await Promise.all([
-      supabase.from("modules").select("id").order("display_order"),
+      supabase.from("modules").select("id").eq("status", "published").order("display_order"),
       supabase.from("progress").select("module_id, status").eq("student_id", studentId),
     ]);
 
   if (modulesError) throw modulesError;
   if (progressError) throw progressError;
 
-  const rows = (progressRows ?? []) as { status: ProgressStatus }[];
-  const total = modules?.length ?? 0;
-  const completed = rows.filter((p) => p.status === "complete").length;
+  const publishedIds = new Set((modules ?? []).map((m) => (m as { id: string }).id));
+  const rows = (progressRows ?? []) as { module_id: string; status: ProgressStatus }[];
+  const total = publishedIds.size;
+  const completed = rows.filter((p) => p.status === "complete" && publishedIds.has(p.module_id)).length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
   return { total, completed, percent };
