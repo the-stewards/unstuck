@@ -26,6 +26,7 @@ export interface Student {
   email: string;
   name: string | null;
   call_status: CallStatus;
+  last_nudged_at: string | null;
   created_at: string;
 }
 

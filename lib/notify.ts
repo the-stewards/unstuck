@@ -103,6 +103,68 @@ export async function sendAccessGrantedEmail(email: string): Promise<void> {
   if (error) throw error;
 }
 
+// Same banner shape as accessEmailHtml, different copy — encouraging, not
+// guilt-trippy: this fires at someone who paid and started, then stopped.
+function nudgeEmailHtml(magicLink: string): string {
+  return `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Still there?</title>
+  </head>
+  <body style="margin:0; padding:0; background:#fffae8;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffae8; padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#403d3d; border-radius:0 3px 3px 0; border-left:4px solid #f76732;">
+            <tr>
+              <td style="padding:40px;">
+                <p style="margin:0 0 12px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.3em; text-transform:uppercase; color:#f76732;">
+                  Unstuck
+                </p>
+                <h1 style="margin:0 0 20px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:32px; line-height:1.05; letter-spacing:-0.01em; text-transform:uppercase; color:#fffae8;">
+                  Pick Up <span style="color:#f76732;">Where</span> You Left Off
+                </h1>
+                <p style="margin:0 0 28px 0; font-family:'Frank Ruhl Libre', Georgia, serif; font-weight:300; font-size:18px; line-height:1.75; color:rgba(255,250,232,0.85);">
+                  Your UNSTUCK Starter Kit is still waiting, right where you left it. No pressure — just a nudge in case life got busy.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#f76732; border-radius:2px;">
+                      <a href="${magicLink}" style="display:inline-block; padding:16px 40px; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:18px; letter-spacing:0.1em; text-transform:uppercase; color:#fffae8; text-decoration:none;">
+                        Jump Back In
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+  `;
+}
+
+// Fires from the daily stalled-student cron (app/api/cron/nudge-stalled) —
+// see lib/nudges.ts for the "stalled" definition.
+export async function sendStalledNudgeEmail(email: string): Promise<void> {
+  const magicLink = await generateMagicLink(email);
+
+  const { error } = await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL!,
+    to: email,
+    subject: "Still there? Your UNSTUCK kit is waiting",
+    html: nudgeEmailHtml(magicLink),
+  });
+
+  if (error) throw error;
+}
+
 // Fires when webhook processing fails after signature verification — the
 // one place a failure would otherwise be silent (a paying customer gets no
 // access and nobody finds out until they email in). Deliberately best-effort:
