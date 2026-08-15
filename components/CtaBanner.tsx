@@ -22,10 +22,10 @@ interface CopyEntry {
 const COPY: Record<CallStatus, CopyEntry> = {
   not_booked: {
     label: "Next Step",
-    headingPre: "",
-    headingOrange: "Activate",
-    headingPost: " Your Bonuses",
-    body: "The bonuses you missed are still locked — unless you get on a call.",
+    headingPre: "Get Your ",
+    headingOrange: "Personal",
+    headingPost: " Plan",
+    body: "Want us to run your real numbers and map out your next steps? Book a free call — no pressure, no obligation.",
     cta: { label: "Book a Call", href: BOOKING_URL },
   },
   booked: {

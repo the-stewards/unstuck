@@ -1,5 +1,5 @@
 import { requireStudent } from "@/lib/session";
-import { getStudentById, getModules, getBonuses, getStudentBonusStatuses, getActiveTestimonials } from "@/lib/course";
+import { getStudentById, getModules, getBonuses, getActiveTestimonials } from "@/lib/course";
 import { getCourseProgress, getProgressMap } from "@/lib/progress";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleCard } from "@/components/ModuleCard";
@@ -12,18 +12,15 @@ import { TestimonialBlock } from "@/components/TestimonialBlock";
 export default async function DashboardPage() {
   const user = await requireStudent();
 
-  const [student, modules, progressMap, courseProgress, bonuses, bonusStatuses, testimonials] =
-    await Promise.all([
-      getStudentById(user.id),
-      getModules(),
-      getProgressMap(user.id),
-      getCourseProgress(user.id),
-      getBonuses(),
-      getStudentBonusStatuses(user.email!),
-      getActiveTestimonials(),
-    ]);
+  const [student, modules, progressMap, courseProgress, bonuses, testimonials] = await Promise.all([
+    getStudentById(user.id),
+    getModules(),
+    getProgressMap(user.id),
+    getCourseProgress(user.id),
+    getBonuses(),
+    getActiveTestimonials(),
+  ]);
 
-  const bonusStatusByBonusId = new Map(bonusStatuses.map((s) => [s.bonus_id, s.status]));
   const callStatus = student?.call_status ?? "not_booked";
   const nextModuleId = modules.find(
     (courseModule) => (progressMap.get(courseModule.id) ?? "not_started") !== "complete"
@@ -74,11 +71,7 @@ export default async function DashboardPage() {
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {bonuses.map((bonus) => (
-                <BonusLock
-                  key={bonus.id}
-                  bonus={bonus}
-                  status={bonusStatusByBonusId.get(bonus.id) ?? "locked_missed"}
-                />
+                <BonusLock key={bonus.id} bonus={bonus} />
               ))}
             </div>
           </section>
