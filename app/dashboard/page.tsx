@@ -90,6 +90,15 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
+
+        <div className="mt-12 flex gap-4 border-t border-border pt-6 font-body text-base text-muted-light">
+          <a href="/terms" className="hover:text-accent">
+            Terms of Service
+          </a>
+          <a href="/privacy" className="hover:text-accent">
+            Privacy Policy
+          </a>
+        </div>
       </main>
     </div>
   );

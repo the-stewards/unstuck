@@ -10,6 +10,7 @@ interface PurchaseButtonProps {
 
 export function PurchaseButton({ initialEmail = "", className = "mt-6 flex flex-col gap-3" }: PurchaseButtonProps) {
   const [email, setEmail] = useState(initialEmail);
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -44,9 +45,29 @@ export function PurchaseButton({ initialEmail = "", className = "mt-6 flex flex-
         required
         className="border border-border bg-card px-4 py-3 font-body text-base text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
       />
+      <label className="flex items-start gap-2 font-body text-base font-light text-muted">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(event) => setAgreed(event.target.checked)}
+          required
+          className="mt-1 h-4 w-4 shrink-0 border-border accent-accent"
+        />
+        <span>
+          I agree to the{" "}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !agreed}
         className="w-full bg-accent px-4 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {isPending ? "Redirecting…" : "Get instant access — $47"}
