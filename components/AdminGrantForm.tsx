@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { checkExistingAccess, grantManualAccess } from "@/app/actions/admin";
+import { checkExistingAccess, grantManualAccess, resendAccessEmail } from "@/app/actions/admin";
 import type { AccessGrant } from "@/lib/types";
 
 export function AdminGrantForm() {
   const [email, setEmail] = useState("");
   const [existing, setExisting] = useState<AccessGrant | null | undefined>(undefined);
   const [granted, setGranted] = useState(false);
+  const [resent, setResent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -15,6 +16,8 @@ export function AdminGrantForm() {
     event.preventDefault();
     setError(null);
     setGranted(false);
+
+    setResent(false);
 
     startTransition(async () => {
       const result = await checkExistingAccess(email);
@@ -34,6 +37,19 @@ export function AdminGrantForm() {
         return;
       }
       setGranted(result.data.granted);
+    });
+  }
+
+  function handleResend() {
+    setError(null);
+    setResent(false);
+    startTransition(async () => {
+      const result = await resendAccessEmail(email);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      setResent(true);
     });
   }
 
@@ -77,11 +93,27 @@ export function AdminGrantForm() {
       {!granted && existing !== undefined && (
         <div className="mt-3 flex items-center justify-between gap-4">
           {existing ? (
-            <p className="font-body text-base text-muted">
-              This email already has access —{" "}
-              {existing.source === "stripe_purchase" ? "purchased" : "granted"}{" "}
-              {new Date(existing.granted_at).toLocaleDateString()}.
-            </p>
+            <>
+              <p className="font-body text-base text-muted">
+                This email already has access —{" "}
+                {existing.source === "stripe_purchase" ? "purchased" : "granted"}{" "}
+                {new Date(existing.granted_at).toLocaleDateString()}.
+              </p>
+              {resent ? (
+                <p className="shrink-0 font-heading text-base font-bold uppercase tracking-wide text-accent">
+                  Email resent.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isPending}
+                  className="shrink-0 border border-foreground px-4 py-2 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+                >
+                  Resend access email
+                </button>
+              )}
+            </>
           ) : (
             <>
               <p className="font-body text-base text-muted">No access on file yet.</p>

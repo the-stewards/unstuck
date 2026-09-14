@@ -33,6 +33,20 @@ export async function grantManualAccess(
   });
 }
 
+// For a student who already has a grant but never got (or lost) the
+// original delivery email — grantAccess() is idempotent and won't
+// re-send on its own, so this bypasses it and re-fires the email
+// directly against a fresh magic link. Admin-gated the same as every
+// other action here; does not touch the access_grants row at all.
+export async function resendAccessEmail(email: string): Promise<ActionResult> {
+  return runAdminAction(async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await getAccessGrant(normalizedEmail);
+    if (!existing) throw new Error("No access grant on file for this email.");
+    await sendAccessGrantedEmail(normalizedEmail);
+  });
+}
+
 // Reactivates every bonus this student hasn't already gotten some other
 // way. Only touches rows that are missing or still locked_missed — never
 // downgrades a bonus that was already included_at_purchase or previously
