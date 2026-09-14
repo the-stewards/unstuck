@@ -15,9 +15,11 @@ function getResend(): Resend {
 }
 
 // Generates a Supabase magic link without sending Supabase's own email —
-// used only for the post-access-grant email, which has to double as a
-// receipt/welcome message (custom copy), not the plain login-screen resend.
-async function generateMagicLink(email: string): Promise<string> {
+// used for the post-access-grant email (custom copy, not the plain
+// login-screen resend) and exported for the admin "copy link" action,
+// which hands the same link to Ryan to deliver by hand when email
+// delivery itself is the thing that's broken.
+export async function generateMagicLink(email: string): Promise<string> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.auth.admin.generateLink({
     type: "magiclink",

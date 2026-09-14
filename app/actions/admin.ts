@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { grantAccess, getAccessGrant } from "@/lib/access";
-import { sendAccessGrantedEmail } from "@/lib/notify";
+import { sendAccessGrantedEmail, generateMagicLink } from "@/lib/notify";
 import { runAdminAction, type ActionResult } from "@/lib/action-result";
 import type { AccessGrant, CallStatus } from "@/lib/types";
 
@@ -44,6 +44,21 @@ export async function resendAccessEmail(email: string): Promise<ActionResult> {
     const existing = await getAccessGrant(normalizedEmail);
     if (!existing) throw new Error("No access grant on file for this email.");
     await sendAccessGrantedEmail(normalizedEmail);
+  });
+}
+
+// Hands back the raw magic link instead of emailing it — for when email
+// delivery itself is the broken part (spam filtering, a mistyped inbox
+// the student can't fix, etc.) and Ryan needs to deliver it by text or
+// some other channel himself. Same admin gate and existing-grant check
+// as resendAccessEmail; Supabase's own OTP expiry window still applies,
+// so this is meant to be sent right after copying, not stockpiled.
+export async function getAccessLink(email: string): Promise<ActionResult<string>> {
+  return runAdminAction(async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await getAccessGrant(normalizedEmail);
+    if (!existing) throw new Error("No access grant on file for this email.");
+    return generateMagicLink(normalizedEmail);
   });
 }
 

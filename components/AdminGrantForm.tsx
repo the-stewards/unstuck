@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { checkExistingAccess, grantManualAccess, resendAccessEmail } from "@/app/actions/admin";
+import { checkExistingAccess, grantManualAccess, resendAccessEmail, getAccessLink } from "@/app/actions/admin";
 import type { AccessGrant } from "@/lib/types";
 
 export function AdminGrantForm() {
@@ -9,6 +9,7 @@ export function AdminGrantForm() {
   const [existing, setExisting] = useState<AccessGrant | null | undefined>(undefined);
   const [granted, setGranted] = useState(false);
   const [resent, setResent] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -18,6 +19,7 @@ export function AdminGrantForm() {
     setGranted(false);
 
     setResent(false);
+    setLinkCopied(false);
 
     startTransition(async () => {
       const result = await checkExistingAccess(email);
@@ -50,6 +52,24 @@ export function AdminGrantForm() {
         return;
       }
       setResent(true);
+    });
+  }
+
+  function handleCopyLink() {
+    setError(null);
+    setLinkCopied(false);
+    startTransition(async () => {
+      const result = await getAccessLink(email);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(result.data);
+        setLinkCopied(true);
+      } catch {
+        setError("Got the link but couldn't copy it — check clipboard permissions and try again.");
+      }
     });
   }
 
@@ -93,27 +113,50 @@ export function AdminGrantForm() {
       {!granted && existing !== undefined && (
         <div className="mt-3 flex items-center justify-between gap-4">
           {existing ? (
-            <>
-              <p className="font-body text-base text-muted">
-                This email already has access —{" "}
-                {existing.source === "stripe_purchase" ? "purchased" : "granted"}{" "}
-                {new Date(existing.granted_at).toLocaleDateString()}.
-              </p>
-              {resent ? (
-                <p className="shrink-0 font-heading text-base font-bold uppercase tracking-wide text-accent">
-                  Email resent.
+            <div className="flex w-full flex-col gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-body text-base text-muted">
+                  This email already has access —{" "}
+                  {existing.source === "stripe_purchase" ? "purchased" : "granted"}{" "}
+                  {new Date(existing.granted_at).toLocaleDateString()}.
                 </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={isPending}
-                  className="shrink-0 border border-foreground px-4 py-2 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-                >
-                  Resend access email
-                </button>
+                <div className="flex shrink-0 gap-2">
+                  {resent ? (
+                    <p className="font-heading text-base font-bold uppercase tracking-wide text-accent">
+                      Email resent.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={isPending}
+                      className="border border-foreground px-4 py-2 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+                    >
+                      Resend email
+                    </button>
+                  )}
+                  {linkCopied ? (
+                    <p className="font-heading text-base font-bold uppercase tracking-wide text-accent">
+                      Link copied.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      disabled={isPending}
+                      className="border border-foreground px-4 py-2 font-heading text-base font-bold uppercase tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+                    >
+                      Copy link
+                    </button>
+                  )}
+                </div>
+              </div>
+              {linkCopied && (
+                <p className="font-body text-sm text-muted">
+                  Link's on your clipboard — send it now. It expires, so don't sit on it.
+                </p>
               )}
-            </>
+            </div>
           ) : (
             <>
               <p className="font-body text-base text-muted">No access on file yet.</p>
