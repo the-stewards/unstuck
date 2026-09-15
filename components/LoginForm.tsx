@@ -1,45 +1,23 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { requestMagicLink, type MagicLinkResult } from "@/app/actions/auth";
+import { useTransition, useState } from "react";
+import { requestMagicLink } from "@/app/actions/auth";
 import { SUPPORT_EMAIL } from "@/lib/support";
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition();
-  const [email, setEmail] = useState("");
-  const [result, setResult] = useState<MagicLinkResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function submit(formData: FormData) {
-    setEmail(String(formData.get("email") ?? ""));
+    setError(null);
     startTransition(async () => {
-      setResult(await requestMagicLink(formData));
+      // A successful call redirects server-side and never returns here —
+      // only a failure resolves with a result to show inline.
+      const result = await requestMagicLink(formData);
+      if (!result.success) {
+        setError(result.error ?? "Something went wrong. Try again in a moment.");
+      }
     });
-  }
-
-  function resend() {
-    const formData = new FormData();
-    formData.set("email", email);
-    startTransition(async () => {
-      setResult(await requestMagicLink(formData));
-    });
-  }
-
-  if (result?.success) {
-    return (
-      <div className="mt-6 flex flex-col gap-3 border-l-4 border-accent bg-card px-4 py-4">
-        <p className="font-body text-base text-foreground">
-          Check your email — your login link is on its way to {email}.
-        </p>
-        <button
-          type="button"
-          onClick={resend}
-          disabled={isPending}
-          className="self-start font-heading text-base font-bold uppercase tracking-wide text-accent hover:underline disabled:opacity-50"
-        >
-          {isPending ? "Resending…" : "Didn't get it? Resend"}
-        </button>
-      </div>
-    );
   }
 
   return (
@@ -56,11 +34,11 @@ export function LoginForm() {
         disabled={isPending}
         className="bg-accent px-4 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {isPending ? "Sending…" : "Send my login link"}
+        {isPending ? "Entering…" : "Enter Unstuck"}
       </button>
-      {result?.error && (
+      {error && (
         <p className="font-body text-base text-red-700">
-          {result.error} Still stuck?{" "}
+          {error} Still stuck?{" "}
           <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
             Email us
           </a>
