@@ -44,10 +44,11 @@ export async function requestMagicLink(formData: FormData): Promise<MagicLinkRes
     }
 
     const supabase = await createClient();
+    // Supabase rejects `email` alongside `token_hash` — that combination is
+    // only valid for the 6-digit-code verification path, not this one.
     const { error: verifyError } = await supabase.auth.verifyOtp({
       type: "magiclink",
       token_hash: data.properties.hashed_token,
-      email,
     });
 
     if (verifyError) {
