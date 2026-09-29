@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   resolve: {
     alias: {
+      "@": path.resolve(import.meta.dirname),
       "server-only": path.resolve(import.meta.dirname, "test/empty-module.ts"),
     },
   },
