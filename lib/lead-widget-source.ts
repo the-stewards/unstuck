@@ -159,12 +159,15 @@ export const LEAD_WIDGET_JS = `
           email: email.value,
           phone: phone.value,
           smsConsent: consent.checked,
+          consentText: form.consentText,
           ref: ref,
           website: trap.value
         })
       })
         .then(function (response) {
-          return response.json().then(function (data) {
+          // An edge/proxy error (502, 413) can return HTML; never show a
+          // JSON parse error to the visitor.
+          return response.json().catch(function () { return {}; }).then(function (data) {
             if (!response.ok) throw new Error(data.error || "Something went wrong. Try again.");
             card.innerHTML = "";
             card.appendChild(el("p", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;", "The Stewards"));

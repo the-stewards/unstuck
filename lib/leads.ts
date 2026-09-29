@@ -14,6 +14,9 @@ const leadSchema = z.object({
     .max(40)
     .refine((v) => v.replace(/\D/g, "").length >= 10, "Please enter a valid phone number."),
   smsConsent: z.literal(true, { error: "Please check the box to consent to texts." }),
+  // The exact wording the visitor was shown. Must match the server's current
+  // wording, so the stored consent record can never differ from what they saw.
+  consentText: z.string().optional(),
   ref: z.string().trim().max(100).optional(),
 });
 
@@ -27,6 +30,9 @@ const RATE_LIMIT_MAX = 60;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 async function isRateLimited(ip: string): Promise<boolean> {
+  // No trustworthy client IP (local dev, non-Vercel host): a shared "unknown"
+  // bucket would lock every visitor out after 60 fills, so skip the limit.
+  if (ip === "unknown") return false;
   try {
     const { data, error } = await createAdminClient().rpc("hit_rate_limit", {
       p_key: `lead:${ip}`,
@@ -61,6 +67,12 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     return { ok: false, status: 400, error: parsed.error.issues[0]?.message ?? "Invalid submission." };
   }
   const lead = parsed.data;
+
+  // Cached form meta / long-open pages can show old consent wording after an
+  // edit. Refuse rather than record wording the visitor never saw.
+  if (lead.consentText !== formConfig.consentText) {
+    return { ok: false, status: 409, error: "This form was just updated. Please refresh the page and try again." };
+  }
 
   if (await isRateLimited(ctx.ip)) {
     return { ok: false, status: 429, error: "Too many submissions from this connection. Try again later." };

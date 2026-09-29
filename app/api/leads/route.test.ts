@@ -12,7 +12,10 @@ vi.mock("@/lib/notify", () => ({
 
 import { POST, OPTIONS } from "@/app/api/leads/route";
 
+import { LEAD_FORMS } from "@/lib/lead-forms";
+
 const valid = {
+  consentText: LEAD_FORMS.webinar.consentText,
   form: "webinar",
   firstName: "Jane",
   lastName: "Doe",
@@ -49,7 +52,7 @@ describe("POST /api/leads", () => {
   });
 
   it("saves a valid lead, normalizes email, and stores the SERVER's consent wording", async () => {
-    const res = await POST(req({ ...valid, consentText: "client-supplied text must be ignored" }));
+    const res = await POST(req(valid));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
 
@@ -64,6 +67,25 @@ describe("POST /api/leads", () => {
     expect(call[1].p_consent_text).toContain("Reply STOP to opt out");
     expect(call[1].p_consent_text).not.toContain("client-supplied");
     expect(emailMock).toHaveBeenCalledWith("jane@example.com", "Jane", expect.any(String), expect.any(String));
+  });
+
+  it("rejects consent wording that differs from the server's (stale cached form)", async () => {
+    const stale = await POST(req({ ...valid, consentText: "old wording" }));
+    expect(stale.status).toBe(409);
+    expect((await stale.json()).error).toMatch(/refresh/i);
+    const missing = await POST(req({ ...valid, consentText: undefined }));
+    expect(missing.status).toBe(409);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it("skips the rate limit when no client IP is available (no shared 'unknown' bucket)", async () => {
+    const r = new Request("http://localhost/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(valid),
+    });
+    expect((await POST(r)).status).toBe(200);
+    expect(rpcMock.mock.calls.some((c) => c[0] === "hit_rate_limit")).toBe(false);
   });
 
   it("honeypot: fakes success without touching the database or email", async () => {
