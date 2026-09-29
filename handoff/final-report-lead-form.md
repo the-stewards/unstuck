@@ -1,6 +1,6 @@
 # Final Report - Lead form widget (RSVP + fill counter)
 
-**Status: Phases 0-7 complete. Phase 6 live smoke done (see phase-6-report-lead-form.md) except the confirmation email, unverified because the local Resend key is rejected. Not deployed, PR not yet opened.**
+**Status: Phases 0-7 complete. Phase 6 live smoke done (see phase-6-report-lead-form.md) including the confirmation email (delivered via Resend after Ryan supplied a working key). Not deployed, PR not yet opened.**
 
 ## What shipped (branch `feat/lead-form`, not merged, not deployed)
 - `<div data-unstuck-lead="webinar"></div><script src=".../embed/lead-widget.js"></script>` script widget (survives BD's JS stripping); iframe fallback `/embed/lead/webinar` posting `unstuck-lead-resize` height.

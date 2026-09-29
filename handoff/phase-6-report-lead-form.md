@@ -16,3 +16,6 @@ Migration `0007_leads.sql` applied to the live Supabase project `unstuck-lms` (`
 ## Not verified
 - **Confirmation email.** The `RESEND_API_KEY` in local `.env.local` (36 chars, `re_` prefix) is rejected by Resend's API ("API key is invalid"), so the local send could not be proven. The route swallows email failures by design (the lead is saved), which is why the submit still returned 200. Check the key (rotated/revoked?) and that the production Vercel env has a working one. Existing flows (`sendAccessGrantedEmail`) use the same key.
 - Widget submit from a real browser against the live DB (widget was verified visually with mocked responses; the API it calls is now proven live).
+
+## Update: confirmation email verified
+Ryan supplied a working Resend key (local .env.local updated; gitignored). Real submit -> "You're in: The Stewards Live Training" sent to rynmiracle@gmail.com, Resend last_event `delivered` (id 01a0ef16-3792-73f0-918a-196a0462ff9c, 2026-09-29 21:33:25 UTC). Test lead + rate-limit row deleted by id/key; all three tables empty. The previously rejected local key was stale; confirm the Vercel production RESEND_API_KEY is valid (not changed by me).
