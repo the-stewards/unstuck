@@ -1,6 +1,6 @@
 # Final Report - Lead form widget (RSVP + fill counter)
 
-**Status: Phases 0-5 and 7 complete. Phase 6 (live smoke) NOT done - blocked: migration 0007 not applied to the live Supabase project** (`leads` table returns 404). Per protocol Phase 6 is not marked complete without real-system evidence.
+**Status: Phases 0-7 complete. Phase 6 live smoke done (see phase-6-report-lead-form.md) except the confirmation email, unverified because the local Resend key is rejected. Not deployed, PR not yet opened.**
 
 ## What shipped (branch `feat/lead-form`, not merged, not deployed)
 - `<div data-unstuck-lead="webinar"></div><script src=".../embed/lead-widget.js"></script>` script widget (survives BD's JS stripping); iframe fallback `/embed/lead/webinar` posting `unstuck-lead-resize` height.
