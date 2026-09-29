@@ -31,10 +31,10 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     minCount: 25,
     countLabel: "people have reserved a seat",
     consentText:
-      "By checking this box, I agree to receive text messages from The Stewards about this event at the number provided. Message and data rates may apply. Reply STOP to opt out.",
-    eventName: "The Stewards Live Training",
-    // TODO(Ryan): set the real event name and date before launch.
-    eventDate: "Date to be announced",
+      "I agree to receive text and email reminders for Unstuck. Message and data rates may apply. Reply STOP to opt out.",
+    eventName: "Unstuck Live Training",
+    // Recurring weekly session; Eastern time assumed (Ohio).
+    eventDate: "Every Thursday at 12:00 PM ET",
   },
 };
 
