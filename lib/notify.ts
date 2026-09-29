@@ -193,3 +193,41 @@ export async function sendAdminAlert(subject: string, message: string): Promise<
     console.error("Failed to send admin alert:", subject, err);
   }
 }
+
+// Confirmation for a lead-form fill. Best-effort by design: callers must not
+// let a failure here fail the submission (the lead is already saved).
+export async function sendLeadConfirmationEmail(
+  email: string,
+  firstName: string,
+  eventName: string,
+  eventDate: string
+): Promise<void> {
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  const { error } = await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL!,
+    to: email,
+    subject: `You're in: ${eventName}`,
+    html: `
+<!doctype html>
+<html>
+  <body style="margin:0; padding:0; background:#fffae8;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffae8; padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#403d3d; border-radius:0 3px 3px 0; border-left:4px solid #f76732;">
+          <tr><td style="padding:40px;">
+            <p style="margin:0 0 12px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.3em; text-transform:uppercase; color:#f76732;">The Stewards</p>
+            <h1 style="margin:0 0 20px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:32px; line-height:1.05; text-transform:uppercase; color:#fffae8;">You're <span style="color:#f76732;">in</span>, ${esc(firstName)}</h1>
+            <p style="margin:0 0 16px 0; font-family:'Frank Ruhl Libre', Georgia, serif; font-weight:300; font-size:18px; line-height:1.75; color:rgba(255,250,232,0.85);">Your seat is reserved for <strong style="color:#fffae8;">${esc(eventName)}</strong>.</p>
+            <p style="margin:0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:18px; letter-spacing:0.05em; text-transform:uppercase; color:#f76732;">${esc(eventDate)}</p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`,
+  });
+
+  if (error) throw error;
+}
