@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getLeadForm } from "@/lib/lead-forms";
+import { getCalendarPageUrl, getLeadForm } from "@/lib/lead-forms";
 
 // Open to any origin: this route only ever creates a Stripe Checkout Session
 // (no cookies, no session, no secret data in the response — just a redirect
@@ -32,6 +32,10 @@ async function logCheckoutAttempt(email: string, sessionId: string): Promise<voi
   }
 }
 
+function withParam(url: string, key: string, value: string): string {
+  return `${url}${url.includes("?") ? "&" : "?"}${key}=${value}`;
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // The step 2 (upsell) page only knows the opaque lead id from its URL, never
@@ -55,9 +59,10 @@ export async function POST(request: Request) {
     : typeof body?.email === "string"
       ? body.email.trim().toLowerCase()
       : "";
-  // Set by the webinar RSVP upsell so the success page can show the
-  // save-to-calendar step. Only a known form key is ever echoed into the URL.
-  const from = typeof body?.from === "string" && getLeadForm(body.from) ? body.from : "";
+  // Set by the lead-form upsell (step 2). A known form key sends the buyer back
+  // to that form's save-to-calendar page after payment; anything else gets the
+  // normal purchase success page. The URL comes from server config only.
+  const leadForm = typeof body?.from === "string" ? getLeadForm(body.from) : undefined;
 
   if (!email || !email.includes("@")) {
     return NextResponse.json(
@@ -80,7 +85,9 @@ export async function POST(request: Request) {
       payment_method_types: ["card"],
       line_items: [{ price: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID!, quantity: 1 }],
       customer_email: email,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchase/success?session_id={CHECKOUT_SESSION_ID}${from ? `&from=${from}` : ""}`,
+      success_url: leadForm
+        ? withParam(getCalendarPageUrl(leadForm, process.env.NEXT_PUBLIC_APP_URL!), "purchased", "1")
+        : `${process.env.NEXT_PUBLIC_APP_URL}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchase`,
     });
 

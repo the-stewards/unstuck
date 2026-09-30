@@ -9,3 +9,10 @@ Open: join link (`calendar.joinUrl` in lead-forms.ts), upsell copy sign-off, dep
 Step 1: `<div data-unstuck-lead="webinar" data-next-url="https://YOUR-VSL-PAGE"></div>` + `<script src="https://unstuck.stewards.loan/embed/lead-widget.js"></script>`
 Step 2 (under the VSL): `<div data-unstuck-upsell="webinar"></div>` + the same script tag.
 Not built: iframe fallback for step 1 does not take data-next-url; hosted VSL page (Ryan builds the VSL page himself).
+
+## Revision 2 2026-09-30 (three separate widgets)
+87 tests pass, build clean. Browser-verified: step 2 decline -> /calendar/webinar (calendar widget); /calendar/webinar?purchased=1 shows the payment-received note. Not verified live: an actual Stripe payment returning to the calendar page (production Stripe is TEST mode; return URL covered by a unit test).
+Embeds (all use `<script src="https://unstuck.stewards.loan/embed/lead-widget.js"></script>` once per page):
+1. `<div data-unstuck-lead="webinar" data-next-url="https://STEP2-PAGE"></div>`
+2. `<div data-unstuck-upsell="webinar"></div>` (under the VSL)
+3. `<div data-unstuck-calendar="webinar"></div>`

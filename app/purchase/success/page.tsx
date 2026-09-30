@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { getOrderBySessionId } from "@/lib/course";
 import { PurchaseSuccessStatus } from "@/components/PurchaseSuccessStatus";
-import { CalendarButtons } from "@/components/CalendarButtons";
 
 export default async function PurchaseSuccessPage({
   searchParams,
 }: PageProps<"/purchase/success">) {
-  const { session_id: sessionId, from } = await searchParams;
+  const { session_id: sessionId } = await searchParams;
 
   if (typeof sessionId !== "string") {
     return (
@@ -38,7 +37,6 @@ export default async function PurchaseSuccessPage({
           initialFound={!!order}
           initialEmail={order?.email ?? null}
         />
-        {typeof from === "string" && <CalendarButtons formKey={from} />}
       </div>
     </main>
   );

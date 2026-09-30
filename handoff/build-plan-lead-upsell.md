@@ -19,3 +19,11 @@ Ryan: step 2 must live on a separate page (with a VSL above the offer). Step 1 r
 - Step 2 widget: `<div data-unstuck-upsell="webinar">` (same script). Reads `?lid=` (or `data-lid`). Yes -> POST /api/stripe/checkout {leadId, from}; No thanks -> in-place calendar step. Without a lid it asks for an email.
 - `POST /api/leads` now returns `leadId`. Checkout route resolves `leadId` -> email server-side (UUID-validated, unknown id -> 400), ignoring any client email when a leadId is sent.
 - Consent text shortened per Ryan: "I agree to receive text and email reminders for Unstuck." (STOP/rates sentence removed at his direction).
+
+## Revision 2 2026-09-30 - three separate widgets
+Ryan: each step is its own widget; after Stripe checkout the buyer returns to the save-to-calendar page.
+- Step 3 widget `<div data-unstuck-calendar="webinar">` (same script). Shows a payment-received note when `?purchased=1`.
+- Decline on step 2 now redirects to the calendar page (no in-place conversion).
+- Stripe `success_url` for upsell buyers = form's calendar page + `?purchased=1`, built server-side from config (`getCalendarPageUrl`: `calendarPageUrl` in lib/lead-forms.ts, else hosted `/calendar/<key>`). A browser can never choose the redirect. Non-upsell purchases keep `/purchase/success`.
+- Hosted default page `app/calendar/[formKey]/page.tsx`. Removed the earlier CalendarButtons/success-page `from` hack.
+- To use a BD page for step 3: paste the calendar snippet there and set `calendarPageUrl` in lib/lead-forms.ts to that page's URL.

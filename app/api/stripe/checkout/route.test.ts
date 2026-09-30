@@ -69,18 +69,19 @@ describe("POST /api/stripe/checkout", () => {
     expect(data.error).toBeTruthy();
   });
 
-  it("adds ?from= to the success URL only for a known lead form (upsell flow)", async () => {
+  it("upsell buyers return to the form's calendar page (purchased=1); everyone else gets the normal success page", async () => {
     const create = vi.fn(async (_args: { success_url: string }) => ({ url: "https://checkout.stripe.com/s", id: "cs_1" }));
     vi.mocked(getStripe).mockReturnValue({ checkout: { sessions: { create } } } as never);
+    process.env.NEXT_PUBLIC_APP_URL = "https://unstuck.stewards.loan";
 
     await POST(checkoutRequest({ email: "buyer@example.com", from: "webinar" }));
     await POST(checkoutRequest({ email: "buyer@example.com", from: "https://evil.example" }));
     await POST(checkoutRequest({ email: "buyer@example.com" }));
 
     const urls = create.mock.calls.map((c) => c[0].success_url);
-    expect(urls[0]).toMatch(/&from=webinar$/);
-    expect(urls[1]).not.toContain("from=");
-    expect(urls[2]).not.toContain("from=");
+    expect(urls[0]).toBe("https://unstuck.stewards.loan/calendar/webinar?purchased=1");
+    expect(urls[1]).toContain("/purchase/success?session_id=");
+    expect(urls[2]).toContain("/purchase/success?session_id=");
   });
 
   describe("leadId (step 2 page: opaque id instead of email in the URL)", () => {

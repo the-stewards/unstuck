@@ -4,15 +4,18 @@
 // src references - see app/embed/checkout-widget.js). Plain ES5 on purpose:
 // it runs on arbitrary host pages, unbundled and untranspiled.
 //
-// Two widgets, one script:
+// Three widgets, one script, each on its own page:
 //   Step 1  <div data-unstuck-lead="webinar" data-next-url="https://.../offer"></div>
 //           RSVP form. On success redirects to data-next-url?lid=<lead id>
 //           (no personal data in the URL); without data-next-url it shows the
 //           save-to-calendar step in place.
 //   Step 2  <div data-unstuck-upsell="webinar"></div>
-//           The $47 offer, meant to sit under a VSL on its own page. Reads the
-//           lead id from ?lid= (or data-lid). "Yes" -> Stripe Checkout,
-//           "No thanks" -> converts in place to save-to-calendar.
+//           The $47 offer, meant to sit under a VSL. Reads the lead id from
+//           ?lid= (or data-lid). "Yes" -> Stripe Checkout, which returns to the
+//           step 3 page; "No thanks" -> step 3 page.
+//   Step 3  <div data-unstuck-calendar="webinar"></div>
+//           Save to calendar. Shows a payment-received note when the URL has
+//           ?purchased=1 (added by the checkout success_url).
 //
 // Rules for editing this string: no backticks and no "${" (it lives inside a
 // JS template literal), and every style is inline so host-page CSS can't
@@ -107,11 +110,14 @@ export const LEAD_WIDGET_JS = `
   }
 
   // Confirmation + save to calendar. Shared end of both flows.
-  function showCalendar(card, meta) {
+  function showCalendar(card, meta, purchased) {
     var form = meta.form;
     card.innerHTML = "";
     card.appendChild(el("h2", H2, form.successTitle));
     card.appendChild(el("p", BODY, form.successMessage));
+    if (purchased) {
+      card.appendChild(el("p", "margin:0 0 16px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:18px;letter-spacing:0.05em;text-transform:uppercase;color:#f76732;", form.calendarStep.purchasedMessage));
+    }
     card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
     card.appendChild(el("h3", "margin:0 0 8px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:22px;text-transform:uppercase;color:#fffae8;", form.calendarStep.title));
     card.appendChild(el("p", BODY, form.calendarStep.message));
@@ -307,13 +313,26 @@ export const LEAD_WIDGET_JS = `
           buy.textContent = u.cta;
         });
     });
-    // Declining converts this same widget into the save-to-calendar step.
-    no.addEventListener("click", function () { showCalendar(card, meta); });
+    // Declining goes to the save-to-calendar page (the same page Stripe
+    // returns buyers to), where the calendar widget lives.
+    no.addEventListener("click", function () {
+      no.disabled = true;
+      goTo(form.calendarPageUrl);
+    });
 
     card.appendChild(buy);
     card.appendChild(no);
     card.appendChild(err);
     card.appendChild(terms);
+  }
+
+  // ---- Step 3: save to calendar (its own page; decline and Stripe return here) ----
+  function buildCalendar(target, meta) {
+    var card = el("div", CARD);
+    target.appendChild(card);
+    var purchased = false;
+    try { purchased = new URLSearchParams(window.location.search).get("purchased") === "1"; } catch (e) {}
+    showCalendar(card, meta, purchased);
   }
 
   function mount(target, key, builder) {
@@ -339,6 +358,10 @@ export const LEAD_WIDGET_JS = `
     var offers = document.querySelectorAll("[data-unstuck-upsell]");
     for (var j = 0; j < offers.length; j++) {
       mount(offers[j], offers[j].getAttribute("data-unstuck-upsell") || "webinar", buildUpsell);
+    }
+    var cals = document.querySelectorAll("[data-unstuck-calendar]");
+    for (var k = 0; k < cals.length; k++) {
+      mount(cals[k], cals[k].getAttribute("data-unstuck-calendar") || "webinar", buildCalendar);
     }
   }
 

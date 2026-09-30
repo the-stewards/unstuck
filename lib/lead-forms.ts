@@ -33,7 +33,18 @@ export interface LeadFormConfig {
     decline: string;
     terms: string;
   };
-  calendarStep: { title: string; message: string; googleLabel: string; icsLabel: string };
+  calendarStep: { title: string; message: string; googleLabel: string; icsLabel: string; purchasedMessage: string };
+  // Where the save-to-calendar widget lives. Declining the upsell and returning
+  // from Stripe checkout both land here. Absolute URL (e.g. a Brilliant
+  // Directories page that embeds data-unstuck-calendar). Omit to use the
+  // hosted page at /calendar/<key> on this app.
+  calendarPageUrl?: string;
+}
+
+// Server-owned on purpose: the checkout route builds Stripe's success_url from
+// this, so a browser can never point the post-payment redirect elsewhere.
+export function getCalendarPageUrl(form: LeadFormConfig, origin: string): string {
+  return form.calendarPageUrl || `${origin.replace(/\/+$/, "")}/calendar/${form.key}`;
 }
 
 export const LEAD_FORMS: Record<string, LeadFormConfig> = {
@@ -77,6 +88,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       message: "Every Thursday at 12:00 PM ET. Save it now so you do not miss it.",
       googleLabel: "Google Calendar",
       icsLabel: "Apple / Outlook (.ics)",
+      purchasedMessage: "Payment received. Check your email for your UNSTUCK access link.",
     },
   },
 };
