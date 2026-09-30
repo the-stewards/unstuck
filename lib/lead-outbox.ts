@@ -47,7 +47,7 @@ function buildZapierPayload(row: OutboxRow) {
     form_key: p.form_key ?? null,
     event_name: form?.eventName ?? null,
     event_date: form?.eventDate ?? null,
-    // "This Thursday, October 1 at 12:00 PM ET", relative to when they RSVPed.
+    // "This Thursday at 12:00 PM ET", relative to when they RSVPed.
     next_session: form ? safeNextSession(form.schedule, p.created_at) : null,
     first_name: p.first_name ?? null,
     last_name: p.last_name ?? null,

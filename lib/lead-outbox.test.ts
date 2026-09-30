@@ -102,7 +102,7 @@ describe("flushLeadOutbox", () => {
       sms_consent: true,
       event_name: "Unstuck Live Training",
       event_date: "Every Thursday at 12:00 PM ET",
-      next_session: "This Thursday, October 1 at 12:00 PM ET", // RSVP created Wed 2026-09-30
+      next_session: "This Thursday at 12:00 PM ET", // RSVP created Wed 2026-09-30
     });
     expect(rows[0].sent_at).not.toBeNull();
   });

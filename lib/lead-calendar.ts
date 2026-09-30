@@ -53,23 +53,19 @@ export function nextOccurrence(schedule: LeadFormConfig["schedule"], now: Date =
 }
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
 const TZ_LABEL: Record<string, string> = { "America/New_York": "ET" };
 
 // Human label for the next session, relative to when the RSVP happened:
-// "This Thursday, October 1 at 12:00 PM ET". Sessions 5+ days out (a Friday or
+// "This Thursday at 12:00 PM ET" (no calendar date, by design). Sessions 5+ days out (a Friday or
 // Saturday RSVP, or a Thursday RSVP after the session started) read as "Next
 // Thursday", and a same-day RSVP before the session as "Today".
 export function nextSessionLabel(schedule: LeadFormConfig["schedule"], now: Date = new Date()): string {
-  const { start, delta } = nextOccurrence(schedule, now);
+  const { delta } = nextOccurrence(schedule, now);
   const day = DAY_NAMES[schedule.weekday];
   const prefix = delta === 0 ? "Today" : delta <= 4 ? `This ${day}` : `Next ${day}`;
   const h12 = schedule.hour % 12 === 0 ? 12 : schedule.hour % 12;
   const time = `${h12}:${pad(schedule.minute)} ${schedule.hour < 12 ? "AM" : "PM"}`;
-  return `${prefix}, ${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCDate()} at ${time} ${TZ_LABEL[schedule.tz] ?? schedule.tz}`;
+  return `${prefix} at ${time} ${TZ_LABEL[schedule.tz] ?? schedule.tz}`;
 }
 
 function description(form: LeadFormConfig): string {

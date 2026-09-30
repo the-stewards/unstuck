@@ -73,19 +73,19 @@ describe("nextSessionLabel", () => {
   const at = (iso: string) => nextSessionLabel(form.schedule, new Date(iso));
 
   it('reads "This Thursday" for Sun-Wed RSVPs', () => {
-    expect(at("2026-09-27T16:00:00Z")).toBe("This Thursday, October 1 at 12:00 PM ET"); // Sunday
-    expect(at("2026-09-30T16:00:00Z")).toBe("This Thursday, October 1 at 12:00 PM ET"); // Wednesday
+    expect(at("2026-09-27T16:00:00Z")).toBe("This Thursday at 12:00 PM ET"); // Sunday
+    expect(at("2026-09-30T16:00:00Z")).toBe("This Thursday at 12:00 PM ET"); // Wednesday
   });
 
   it('reads "Next Thursday" for Fri/Sat RSVPs and Thursday after the session starts', () => {
-    expect(at("2026-10-02T16:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Friday
-    expect(at("2026-10-03T16:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Saturday
-    expect(at("2026-10-01T17:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Thu 1pm ET
+    expect(at("2026-10-02T16:00:00Z")).toBe("Next Thursday at 12:00 PM ET"); // Friday
+    expect(at("2026-10-03T16:00:00Z")).toBe("Next Thursday at 12:00 PM ET"); // Saturday
+    expect(at("2026-10-01T17:00:00Z")).toBe("Next Thursday at 12:00 PM ET"); // Thu 1pm ET
   });
 
   it('reads "Today" on Thursday before noon ET, and crosses month boundaries', () => {
-    expect(at("2026-10-01T14:00:00Z")).toBe("Today, October 1 at 12:00 PM ET");
-    expect(at("2026-10-27T16:00:00Z")).toBe("This Thursday, October 29 at 12:00 PM ET");
-    expect(at("2026-10-30T16:00:00Z")).toBe("Next Thursday, November 5 at 12:00 PM ET");
+    expect(at("2026-10-01T14:00:00Z")).toBe("Today at 12:00 PM ET");
+    expect(at("2026-10-27T16:00:00Z")).toBe("This Thursday at 12:00 PM ET");
+    expect(at("2026-10-30T16:00:00Z")).toBe("Next Thursday at 12:00 PM ET");
   });
 });
