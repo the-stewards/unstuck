@@ -79,7 +79,7 @@ describe("POST /api/stripe/checkout", () => {
     await POST(checkoutRequest({ email: "buyer@example.com" }));
 
     const urls = create.mock.calls.map((c) => c[0].success_url);
-    expect(urls[0]).toBe("https://unstuck.stewards.loan/calendar/webinar?purchased=1");
+    expect(urls[0]).toBe("https://www.stewards.loan/unstuck.save?purchased=1");
     expect(urls[1]).toContain("/purchase/success?session_id=");
     expect(urls[2]).toContain("/purchase/success?session_id=");
   });

@@ -16,3 +16,10 @@ Embeds (all use `<script src="https://unstuck.stewards.loan/embed/lead-widget.js
 1. `<div data-unstuck-lead="webinar" data-next-url="https://STEP2-PAGE"></div>`
 2. `<div data-unstuck-upsell="webinar"></div>` (under the VSL)
 3. `<div data-unstuck-calendar="webinar"></div>`
+
+## Revision 3 2026-09-30 (Stripe Payment Link + real page URLs)
+- Step 2 "Yes" -> Stripe Payment Link https://buy.stripe.com/fZu28qb7kgDO7arec60Fi01 with `client_reference_id=<lead id>` (no PII in URL). No email box needed for this path; the link collects it. Existing webhook (`checkout.session.completed`, uses customer_details.email) grants access for Payment Link purchases too.
+- Step 3 page = https://www.stewards.loan/unstuck.save (calendarPageUrl). Step 2 page = https://www.stewards.loan/starterkit (used as step 1's data-next-url).
+- REQUIRED in Stripe dashboard (not doable from code): Payment Link > After payment > "Don't show confirmation page" > redirect to https://www.stewards.loan/unstuck.save?purchased=1 so buyers return to the calendar page with the payment-received note.
+- Caveat: webhook grants access on ANY checkout.session.completed on the account (pre-existing), not just this product.
+89 tests pass, build clean; verified in-browser that Yes goes to the link with client_reference_id.

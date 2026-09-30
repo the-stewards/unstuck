@@ -32,6 +32,11 @@ export interface LeadFormConfig {
     cta: string;
     decline: string;
     terms: string;
+    // Stripe Payment Link for the $47 offer. When set, "Yes" goes straight to
+    // it (with client_reference_id = the lead id, no personal data in the URL)
+    // instead of creating a Checkout Session through /api/stripe/checkout.
+    // The link's post-payment redirect is configured in the Stripe dashboard.
+    checkoutUrl?: string;
   };
   calendarStep: { title: string; message: string; googleLabel: string; icsLabel: string; purchasedMessage: string };
   // Where the save-to-calendar widget lives. Declining the upsell and returning
@@ -82,6 +87,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       cta: "Yes, Get Instant Access - $47",
       decline: "No thanks, just save my seat",
       terms: "By purchasing you agree to the Terms of Service and Privacy Policy.",
+      checkoutUrl: "https://buy.stripe.com/fZu28qb7kgDO7arec60Fi01",
     },
     calendarStep: {
       title: "Add it to your calendar",
@@ -90,6 +96,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       icsLabel: "Apple / Outlook (.ics)",
       purchasedMessage: "Payment received. Check your email for your UNSTUCK access link.",
     },
+    calendarPageUrl: "https://www.stewards.loan/unstuck.save",
   },
 };
 

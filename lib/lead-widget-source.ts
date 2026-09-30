@@ -271,7 +271,7 @@ export const LEAD_WIDGET_JS = `
     // Someone who lands here without an RSVP link has no lead id, so ask for
     // the email Stripe needs.
     var emailInput = null;
-    if (!lid) {
+    if (!lid && !u.checkoutUrl) {
       emailInput = field("email", "email", "you@email.com", "email");
       emailInput.style.marginBottom = "12px";
       card.appendChild(emailInput);
@@ -295,6 +295,15 @@ export const LEAD_WIDGET_JS = `
       if (emailInput && !emailInput.checkValidity()) { emailInput.reportValidity(); return; }
       buy.disabled = true;
       buy.textContent = "Redirecting\\u2026";
+      // Stripe Payment Link: go straight there. client_reference_id ties the
+      // payment to the RSVP without putting personal data in the URL; the
+      // link collects the email itself.
+      if (u.checkoutUrl) {
+        var payUrl = u.checkoutUrl;
+        if (lid) payUrl += (payUrl.indexOf("?") > -1 ? "&" : "?") + "client_reference_id=" + encodeURIComponent(lid);
+        goTo(payUrl);
+        return;
+      }
       var body = { from: form.key };
       if (lid) body.leadId = lid; else body.email = emailInput.value;
       api("/api/stripe/checkout", {
