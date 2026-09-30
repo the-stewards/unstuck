@@ -3,6 +3,7 @@ import { getLeadForm } from "@/lib/lead-forms";
 import { submitLead } from "@/lib/leads";
 import { sendLeadConfirmationEmail } from "@/lib/notify";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
+import { flushLeadOutbox } from "@/lib/lead-outbox";
 
 const MAX_BODY_BYTES = 10_000;
 
@@ -45,16 +46,21 @@ export async function POST(request: Request) {
     const result = await submitLead(body, { ip, userAgent });
     if (!result.ok) return json({ error: result.error }, result.status);
 
-    // The lead is already saved; a failed confirmation email must never turn
-    // this into an error response (a retry would just hit the 409).
+    // The lead is already saved; neither the confirmation email nor the
+    // Zapier delivery may turn this into an error response (a retry would just
+    // hit the 409). They run together so they add one round trip, not two.
+    // Undelivered outbox rows are retried by the next submission's flush and
+    // the daily cron.
     const form = getLeadForm(result.formKey);
-    if (form) {
-      try {
-        await sendLeadConfirmationEmail(result.email, result.firstName, form.eventName, form.eventDate);
-      } catch (err) {
-        console.error("Lead confirmation email failed:", err);
-      }
-    }
+    await Promise.allSettled([
+      form
+        ? sendLeadConfirmationEmail(result.email, result.firstName, form.eventName, form.eventDate).catch((err) =>
+            console.error("Lead confirmation email failed:", err)
+          )
+        : Promise.resolve(),
+      result.leadId ? flushLeadOutbox({ leadId: result.leadId }) : Promise.resolve(),
+      flushLeadOutbox({ limit: 5 }),
+    ]);
 
     // leadId is the visitor's own opaque id; the step 2 page uses it (instead
     // of name/email in the URL) to start checkout for this RSVP.

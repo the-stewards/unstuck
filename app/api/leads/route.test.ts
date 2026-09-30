@@ -10,6 +10,9 @@ vi.mock("@/lib/notify", () => ({
   sendLeadConfirmationEmail: (...args: unknown[]) => emailMock(...args),
 }));
 
+const flushMock = vi.fn();
+vi.mock("@/lib/lead-outbox", () => ({ flushLeadOutbox: (...a: unknown[]) => flushMock(...a) }));
+
 import { POST, OPTIONS } from "@/app/api/leads/route";
 
 import { LEAD_FORMS } from "@/lib/lead-forms";
@@ -47,6 +50,8 @@ describe("POST /api/leads", () => {
   beforeEach(() => {
     rpcMock.mockReset();
     emailMock.mockReset();
+    flushMock.mockReset();
+    flushMock.mockResolvedValue({ sent: 1, failed: 0, skipped: false });
     emailMock.mockResolvedValue(undefined);
     happyRpc();
   });
@@ -88,12 +93,23 @@ describe("POST /api/leads", () => {
     expect(rpcMock.mock.calls.some((c) => c[0] === "hit_rate_limit")).toBe(false);
   });
 
+  it("queues delivery to Zapier for the new lead, and a Zapier failure never fails the RSVP", async () => {
+    const ok = await POST(req(valid));
+    expect(ok.status).toBe(200);
+    expect(flushMock).toHaveBeenCalledWith({ leadId: "lead-uuid-1" });
+
+    flushMock.mockRejectedValue(new Error("zapier down"));
+    const res = await POST(req({ ...valid, email: "other@example.com" }));
+    expect(res.status).toBe(200);
+  });
+
   it("honeypot: fakes success without touching the database or email", async () => {
     const res = await POST(req({ ...valid, website: "http://spam.example" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
     expect(rpcMock).not.toHaveBeenCalled();
     expect(emailMock).not.toHaveBeenCalled();
+    expect(flushMock).not.toHaveBeenCalled();
   });
 
   it("enforces SMS consent server-side (the checkbox is only a client check)", async () => {
