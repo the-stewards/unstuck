@@ -75,16 +75,18 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       joinUrl: "",
     },
     upsell: {
+      // Short on purpose: the upsell page above the widget does the selling
+      // (VSL + the six tools), so this card only closes the sale.
       eyebrow: "Your seat is saved",
-      headline: "Want the full UNSTUCK Starter Kit?",
-      body: "Add it now and start before the live session.",
+      headline: "Add the Move-Up Starter Kit",
+      body: "Normally $197. Yours for $47 today, delivered instantly.",
       bullets: [
-        "Six short video modules you can finish in an afternoon",
-        "Companion checklists and scripts for every module",
-        "Bonuses, plus instant access the moment you check out",
+        "Six tools to prep your family, your home, and your finances",
+        "Instant access after checkout, so you can start tonight",
+        "Optional. Your free Move-Up Plan doesn't depend on it",
       ],
       price: "$47 one-time",
-      cta: "Yes, Get Instant Access - $47",
+      cta: "Yes, Add The Starter Kit - $47",
       decline: "No thanks, just save my seat",
       terms: "By purchasing you agree to the Terms of Service and Privacy Policy.",
       checkoutUrl: "https://buy.stripe.com/fZu28qb7kgDO7arec60Fi01",
