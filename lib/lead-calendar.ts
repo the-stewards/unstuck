@@ -53,7 +53,16 @@ export function nextOccurrence(schedule: LeadFormConfig["schedule"], now: Date =
 }
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 const TZ_LABEL: Record<string, string> = { "America/New_York": "ET" };
+
+function timeLabel(schedule: LeadFormConfig["schedule"]): string {
+  const h12 = schedule.hour % 12 === 0 ? 12 : schedule.hour % 12;
+  return `${h12}:${pad(schedule.minute)} ${schedule.hour < 12 ? "AM" : "PM"} ${TZ_LABEL[schedule.tz] ?? schedule.tz}`;
+}
 
 // Human label for the next session, relative to when the RSVP happened:
 // "This Thursday at 12:00 PM ET" (no calendar date, by design). Sessions 5+ days out (a Friday or
@@ -63,9 +72,14 @@ export function nextSessionLabel(schedule: LeadFormConfig["schedule"], now: Date
   const { delta } = nextOccurrence(schedule, now);
   const day = DAY_NAMES[schedule.weekday];
   const prefix = delta === 0 ? "Today" : delta <= 4 ? `This ${day}` : `Next ${day}`;
-  const h12 = schedule.hour % 12 === 0 ? 12 : schedule.hour % 12;
-  const time = `${h12}:${pad(schedule.minute)} ${schedule.hour < 12 ? "AM" : "PM"}`;
-  return `${prefix} at ${time} ${TZ_LABEL[schedule.tz] ?? schedule.tz}`;
+  return `${prefix} at ${timeLabel(schedule)}`;
+}
+
+// Exact-date label for the next session: "Thursday, October 1, 2026 at 12:00 PM ET".
+// Used by the landing page (data-format="date") and the Zapier payload.
+export function nextSessionDateLabel(schedule: LeadFormConfig["schedule"], now: Date = new Date()): string {
+  const { start } = nextOccurrence(schedule, now);
+  return `${DAY_NAMES[schedule.weekday]}, ${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()} at ${timeLabel(schedule)}`;
 }
 
 function description(form: LeadFormConfig): string {

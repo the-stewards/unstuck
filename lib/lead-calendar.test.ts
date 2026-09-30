@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEAD_FORMS } from "@/lib/lead-forms";
-import { buildIcs, googleCalendarUrl, nextOccurrence, nextSessionLabel } from "@/lib/lead-calendar";
+import { buildIcs, googleCalendarUrl, nextOccurrence, nextSessionDateLabel, nextSessionLabel } from "@/lib/lead-calendar";
 
 const form = LEAD_FORMS.webinar;
 
@@ -87,5 +87,22 @@ describe("nextSessionLabel", () => {
     expect(at("2026-10-01T14:00:00Z")).toBe("Today at 12:00 PM ET");
     expect(at("2026-10-27T16:00:00Z")).toBe("This Thursday at 12:00 PM ET");
     expect(at("2026-10-30T16:00:00Z")).toBe("Next Thursday at 12:00 PM ET");
+  });
+});
+
+describe("nextSessionDateLabel", () => {
+  const at = (iso: string) => nextSessionDateLabel(form.schedule, new Date(iso));
+
+  it("gives the exact date, matching the calendar event's start", () => {
+    expect(at("2026-09-30T16:00:00Z")).toBe("Thursday, October 1, 2026 at 12:00 PM ET");
+    expect(at("2026-10-01T17:00:00Z")).toBe("Thursday, October 8, 2026 at 12:00 PM ET");
+    // same instant as the .ics DTSTART
+    expect(buildIcs(form, new Date("2026-09-30T16:00:00Z"))).toContain("DTSTART;TZID=America/New_York:20261001T120000");
+  });
+
+  it("crosses month and year boundaries", () => {
+    expect(at("2026-10-30T16:00:00Z")).toBe("Thursday, November 5, 2026 at 12:00 PM ET");
+    expect(at("2026-12-29T16:00:00Z")).toBe("Thursday, December 31, 2026 at 12:00 PM ET");
+    expect(at("2026-12-31T18:00:00Z")).toBe("Thursday, January 7, 2027 at 12:00 PM ET");
   });
 });

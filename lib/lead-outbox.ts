@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getLeadForm } from "@/lib/lead-forms";
-import { nextSessionLabel } from "@/lib/lead-calendar";
+import { nextSessionDateLabel, nextSessionLabel } from "@/lib/lead-calendar";
 import { sendAdminAlert } from "@/lib/notify";
 
 // Delivers lead_outbox rows (written atomically with each RSVP by the
@@ -28,9 +28,13 @@ export interface FlushResult {
 }
 
 // A malformed timestamp must not make the whole delivery fail.
-function safeNextSession(schedule: Parameters<typeof nextSessionLabel>[0], createdAt: unknown): string | null {
+function safeNextSession(
+  schedule: Parameters<typeof nextSessionLabel>[0],
+  createdAt: unknown,
+  label: typeof nextSessionLabel = nextSessionLabel
+): string | null {
   try {
-    return nextSessionLabel(schedule, createdAt ? new Date(String(createdAt)) : new Date());
+    return label(schedule, createdAt ? new Date(String(createdAt)) : new Date());
   } catch {
     return null;
   }
@@ -49,6 +53,8 @@ function buildZapierPayload(row: OutboxRow) {
     event_date: form?.eventDate ?? null,
     // "This Thursday at 12:00 PM ET", relative to when they RSVPed.
     next_session: form ? safeNextSession(form.schedule, p.created_at) : null,
+    // Exact date for reminder texts/emails: "Thursday, October 1, 2026 at 12:00 PM ET".
+    next_session_date: form ? safeNextSession(form.schedule, p.created_at, nextSessionDateLabel) : null,
     first_name: p.first_name ?? null,
     last_name: p.last_name ?? null,
     email: p.email ?? null,

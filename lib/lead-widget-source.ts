@@ -15,6 +15,8 @@
 //           step 3 page; "No thanks" -> step 3 page.
 //   Text    <span data-unstuck-session="webinar">Thursday at 12:00 PM ET</span>
 //           Live "This Thursday at 12:00 PM ET" / "Next Thursday at ..." label.
+//           Add data-format="date" for the exact date:
+//           "Thursday, October 1, 2026 at 12:00 PM ET".
 //   Step 3  <div data-unstuck-calendar="webinar"></div>
 //           Save to calendar. Shows a payment-received note when the URL has
 //           ?purchased=1 (added by the checkout success_url).
@@ -365,7 +367,8 @@ export const LEAD_WIDGET_JS = `
   // becomes "This Thursday at 12:00 PM ET" / "Next Thursday at ..." depending on
   // today. The text already in the span stays as the fallback if this fails.
   function buildSession(target, meta) {
-    if (meta.nextSession) target.textContent = meta.nextSession;
+    var text = target.getAttribute("data-format") === "date" ? meta.nextSessionDate : meta.nextSession;
+    if (text) target.textContent = text;
   }
 
   function mount(target, key, builder) {

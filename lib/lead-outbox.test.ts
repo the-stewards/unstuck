@@ -103,6 +103,7 @@ describe("flushLeadOutbox", () => {
       event_name: "Unstuck Live Training",
       event_date: "Every Thursday at 12:00 PM ET",
       next_session: "This Thursday at 12:00 PM ET", // RSVP created Wed 2026-09-30
+      next_session_date: "Thursday, October 1, 2026 at 12:00 PM ET",
     });
     expect(rows[0].sent_at).not.toBeNull();
   });

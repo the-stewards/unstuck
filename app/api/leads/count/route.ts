@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCalendarPageUrl, getLeadForm } from "@/lib/lead-forms";
 import { getLeadCount } from "@/lib/leads";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
-import { googleCalendarUrl, nextSessionLabel } from "@/lib/lead-calendar";
+import { googleCalendarUrl, nextSessionDateLabel, nextSessionLabel } from "@/lib/lead-calendar";
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: LEAD_CORS_HEADERS });
@@ -31,6 +31,7 @@ export async function GET(request: Request) {
       count,
       minCount: form.minCount,
       nextSession: nextSessionLabel(form.schedule),
+      nextSessionDate: nextSessionDateLabel(form.schedule),
       form: {
         key: form.key,
         title: form.title,
