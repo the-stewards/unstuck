@@ -17,7 +17,13 @@ const leadSchema = z.object({
   // The exact wording the visitor was shown. Must match the server's current
   // wording, so the stored consent record can never differ from what they saw.
   consentText: z.string().optional(),
-  ref: z.string().trim().max(100).optional(),
+  // Attribution string (utm_*), truncated rather than rejected: a long
+  // campaign name must never cost us an RSVP.
+  ref: z
+    .string()
+    .trim()
+    .transform((v) => v.slice(0, 100))
+    .optional(),
 });
 
 export type SubmitLeadResult =

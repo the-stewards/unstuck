@@ -23,6 +23,7 @@ describe("GET /api/leads/count", () => {
     expect(res.status).toBe(200);
     expect(data.count).toBe(137);
     expect(data.minCount).toBe(25);
+    expect(data.nextSession).toMatch(/^(This|Next) Thursday at 12:00 PM ET$|^Today at 12:00 PM ET$/);
     expect(data.form.calendarPageUrl).toBe("https://www.stewards.loan/unstuck.save");
     expect(data.form.consentText).toContain("reminders for Unstuck");
     expect(res.headers.get("access-control-allow-origin")).toBe("*");

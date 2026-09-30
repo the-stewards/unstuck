@@ -109,6 +109,14 @@ describe("POST /api/leads", () => {
     expect(res.status).toBe(200);
   });
 
+  it("stores a long attribution string truncated to 100 chars instead of rejecting the RSVP", async () => {
+    const res = await POST(req({ ...valid, ref: "source=facebook&campaign=" + "x".repeat(300) }));
+    expect(res.status).toBe(200);
+    const call = rpcMock.mock.calls.find((c) => c[0] === "submit_lead")!;
+    expect(call[1].p_ref).toHaveLength(100);
+    expect(call[1].p_ref.startsWith("source=facebook&campaign=")).toBe(true);
+  });
+
   it("honeypot: fakes success without touching the database or email", async () => {
     const res = await POST(req({ ...valid, website: "http://spam.example" }));
     expect(res.status).toBe(200);

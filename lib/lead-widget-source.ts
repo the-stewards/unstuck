@@ -13,6 +13,8 @@
 //           The $47 offer, meant to sit under a VSL. Reads the lead id from
 //           ?lid= (or data-lid). "Yes" -> Stripe Checkout, which returns to the
 //           step 3 page; "No thanks" -> step 3 page.
+//   Text    <span data-unstuck-session="webinar">Thursday at 12:00 PM ET</span>
+//           Live "This Thursday at 12:00 PM ET" / "Next Thursday at ..." label.
 //   Step 3  <div data-unstuck-calendar="webinar"></div>
 //           Save to calendar. Shows a payment-received note when the URL has
 //           ?purchased=1 (added by the checkout success_url).
@@ -109,6 +111,19 @@ export const LEAD_WIDGET_JS = `
     });
   }
 
+  function attribution() {
+    var out = [];
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+      for (var i = 0; i < keys.length; i++) {
+        var v = p.get(keys[i]);
+        if (v) out.push(keys[i].replace("utm_", "") + "=" + v);
+      }
+    } catch (e) {}
+    return out.join("&");
+  }
+
   // Confirmation + save to calendar. Shared end of both flows.
   function showCalendar(card, meta, purchased) {
     var form = meta.form;
@@ -134,7 +149,9 @@ export const LEAD_WIDGET_JS = `
     var form = meta.form;
     var minCount = parseInt(target.getAttribute("data-min-count"), 10);
     if (isNaN(minCount)) minCount = meta.minCount;
-    var ref = target.getAttribute("data-ref") || "";
+    // Ad attribution: data-ref plus any utm_* params on the landing page URL,
+    // stored with the RSVP (and sent to Zapier as "ref"). Capped at 100 chars.
+    var ref = [target.getAttribute("data-ref") || "", attribution()].filter(Boolean).join("|").slice(0, 100);
     var ctaLabel = target.getAttribute("data-cta") || form.cta;
     var nextUrl = target.getAttribute("data-next-url") || "";
     if (!/^https?:\\/\\//i.test(nextUrl)) nextUrl = "";
@@ -344,6 +361,13 @@ export const LEAD_WIDGET_JS = `
     showCalendar(card, meta, purchased);
   }
 
+  // Inline text: <span data-unstuck-session="webinar">Thursday at 12:00 PM ET</span>
+  // becomes "This Thursday at 12:00 PM ET" / "Next Thursday at ..." depending on
+  // today. The text already in the span stays as the fallback if this fails.
+  function buildSession(target, meta) {
+    if (meta.nextSession) target.textContent = meta.nextSession;
+  }
+
   function mount(target, key, builder) {
     // Idempotent: CMS editors can execute an embedded script more than
     // once (preview + live render), and a page may include this script
@@ -355,6 +379,7 @@ export const LEAD_WIDGET_JS = `
       .then(function (meta) { builder(target, meta); })
       .catch(function () {
         target.setAttribute("data-unstuck-ready", "false");
+        if (target.hasAttribute("data-unstuck-session")) return;
         target.appendChild(el("p", "font-family:" + F_BODY + ";font-size:15px;color:#403d3d;", "This form is unavailable right now. Please try again later."));
       });
   }
@@ -367,6 +392,10 @@ export const LEAD_WIDGET_JS = `
     var offers = document.querySelectorAll("[data-unstuck-upsell]");
     for (var j = 0; j < offers.length; j++) {
       mount(offers[j], offers[j].getAttribute("data-unstuck-upsell") || "webinar", buildUpsell);
+    }
+    var sessions = document.querySelectorAll("[data-unstuck-session]");
+    for (var m = 0; m < sessions.length; m++) {
+      mount(sessions[m], sessions[m].getAttribute("data-unstuck-session") || "webinar", buildSession);
     }
     var cals = document.querySelectorAll("[data-unstuck-calendar]");
     for (var k = 0; k < cals.length; k++) {
