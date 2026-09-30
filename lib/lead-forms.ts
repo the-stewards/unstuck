@@ -63,8 +63,8 @@ export function getCalendarPageUrl(form: LeadFormConfig, origin: string): string
 export const LEAD_FORMS: Record<string, LeadFormConfig> = {
   webinar: {
     key: "webinar",
-    title: "Save Your Seat",
-    subtitle: "Free live training from The Stewards. Enter your details to reserve your spot.",
+    title: "", // empty = no heading inside the form; the landing page carries its own headline
+    subtitle: "",
     cta: "Reserve My Spot",
     successTitle: "You're in.",
     successMessage: "Check your email for the details. We'll text you a reminder before we go live.",

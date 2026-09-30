@@ -180,8 +180,8 @@ export const LEAD_WIDGET_JS = `
       countUp(num, meta.count);
     }
 
-    card.appendChild(el("h2", H2, form.title));
-    card.appendChild(el("p", "margin:0 0 22px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);", form.subtitle));
+    if (form.title) card.appendChild(el("h2", H2, form.title));
+    if (form.subtitle) card.appendChild(el("p", "margin:0 0 22px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);", form.subtitle));
 
     var formEl = document.createElement("form");
     formEl.style.cssText = "margin:0;padding:0;";
