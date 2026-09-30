@@ -168,7 +168,9 @@ export const LEAD_WIDGET_JS = `
     var nextUrl = target.getAttribute("data-next-url") || "";
     if (!/^https?:\\/\\//i.test(nextUrl)) nextUrl = "";
 
-    var card = el("div", CARD);
+    // No orange left rule on the RSVP form: it sits inside the landing page's own
+    // dark box, which already has one, so the two stacked into a stray line.
+    var card = el("div", CARD + "border-left:none;border-radius:3px;");
 
     if (meta.count >= minCount) {
       var pill = el("div", "display:flex;width:fit-content;align-items:center;gap:8px;margin:0 auto 16px auto;padding:6px 12px;border:1px solid rgba(247,103,50,0.5);border-radius:999px;");
