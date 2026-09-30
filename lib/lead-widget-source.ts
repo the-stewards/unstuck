@@ -127,22 +127,32 @@ export const LEAD_WIDGET_JS = `
   }
 
   // Confirmation + save to calendar. Shared end of both flows.
-  function showCalendar(card, meta, purchased) {
+  // compact = on the calendar PAGE, which already has its own headline, so the
+  // card is just the calendar block.
+  function showCalendar(card, meta, purchased, compact) {
     var form = meta.form;
     card.innerHTML = "";
-    card.appendChild(el("h2", H2, form.successTitle));
-    card.appendChild(el("p", BODY, form.successMessage));
+    if (!compact) {
+      card.appendChild(el("h2", H2, form.successTitle));
+      card.appendChild(el("p", BODY, form.successMessage));
+    }
     if (purchased) {
       card.appendChild(el("p", "margin:0 0 16px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:18px;letter-spacing:0.05em;text-transform:uppercase;color:#f76732;", form.calendarStep.purchasedMessage));
     }
-    card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
+    if (!compact) card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
     card.appendChild(el("h3", "margin:0 0 8px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:22px;text-transform:uppercase;color:#fffae8;", form.calendarStep.title));
     card.appendChild(el("p", BODY, form.calendarStep.message));
     var google = el("a", BTN + "margin-bottom:10px;", form.calendarStep.googleLabel);
     google.href = form.calendar.google; google.target = "_blank"; google.rel = "noopener noreferrer";
+    var apple = el("a", BTN_GHOST + "margin-bottom:10px;", form.calendarStep.appleLabel);
+    apple.href = form.calendar.apple || form.calendar.ics;
+    var outlook = el("a", BTN_GHOST + "margin-bottom:10px;", form.calendarStep.outlookLabel);
+    outlook.href = form.calendar.outlook; outlook.target = "_blank"; outlook.rel = "noopener noreferrer";
     var ics = el("a", BTN_GHOST, form.calendarStep.icsLabel);
     ics.href = form.calendar.ics;
     card.appendChild(google);
+    card.appendChild(apple);
+    if (form.calendar.outlook) card.appendChild(outlook);
     card.appendChild(ics);
   }
 
@@ -360,7 +370,7 @@ export const LEAD_WIDGET_JS = `
     target.appendChild(card);
     var purchased = false;
     try { purchased = new URLSearchParams(window.location.search).get("purchased") === "1"; } catch (e) {}
-    showCalendar(card, meta, purchased);
+    showCalendar(card, meta, purchased, true);
   }
 
   // Inline text: <span data-unstuck-session="webinar">Thursday at 12:00 PM ET</span>

@@ -38,7 +38,15 @@ export interface LeadFormConfig {
     // The link's post-payment redirect is configured in the Stripe dashboard.
     checkoutUrl?: string;
   };
-  calendarStep: { title: string; message: string; googleLabel: string; icsLabel: string; purchasedMessage: string };
+  calendarStep: {
+    title: string;
+    message: string;
+    googleLabel: string;
+    appleLabel: string;
+    outlookLabel: string;
+    icsLabel: string;
+    purchasedMessage: string;
+  };
   // Where the save-to-calendar widget lives. Declining the upsell and returning
   // from Stripe checkout both land here. Absolute URL (e.g. a Brilliant
   // Directories page that embeds data-unstuck-calendar). Omit to use the
@@ -93,10 +101,12 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       checkoutUrl: "https://buy.stripe.com/fZu28qb7kgDO7arec60Fi01",
     },
     calendarStep: {
-      title: "Add it to your calendar",
-      message: "Every Thursday at 12:00 PM ET. Save it now so you do not miss it.",
-      googleLabel: "Google Calendar",
-      icsLabel: "Apple / Outlook (.ics)",
+      title: "Add the session to your calendar now so it doesn't get buried.",
+      message: "You'll receive a confirmation email with your access link and calendar details.",
+      googleLabel: "Add to Google Calendar",
+      appleLabel: "Add to Apple Calendar",
+      outlookLabel: "Add to Outlook",
+      icsLabel: "Download .ICS File",
       purchasedMessage: "Payment received. Check your email for your UNSTUCK access link.",
     },
     calendarPageUrl: "https://www.stewards.loan/unstuck.save",

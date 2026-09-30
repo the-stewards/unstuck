@@ -82,6 +82,32 @@ export function nextSessionDateLabel(schedule: LeadFormConfig["schedule"], now: 
   return `${DAY_NAMES[schedule.weekday]}, ${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()} at ${timeLabel(schedule)}`;
 }
 
+// Wall-clock time in `tz` (a UTC-based Date holding the local fields) -> the
+// real UTC instant. Two passes so the offset is right across DST changes.
+function zonedToUtc(wall: Date, tz: string): Date {
+  const offsetAt = (instant: Date) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: tz,
+        hourCycle: "h23",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      })
+        .formatToParts(instant)
+        .map((x) => [x.type, x.value])
+    );
+    const asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+    return asUtc - instant.getTime();
+  };
+  let utc = new Date(wall.getTime() - offsetAt(wall));
+  utc = new Date(wall.getTime() - offsetAt(utc));
+  return utc;
+}
+
 function description(form: LeadFormConfig): string {
   return form.calendar.joinUrl
     ? `${form.calendar.description}\n\nJoin: ${form.calendar.joinUrl}`
@@ -104,6 +130,25 @@ export function googleCalendarUrl(form: LeadFormConfig, now: Date = new Date()):
     ctz: form.schedule.tz,
   });
   return `https://calendar.google.com/calendar/render?${q.toString()}`;
+}
+
+// Outlook.com "add event" deep link. The compose link takes one event (no
+// recurrence), so it adds the next session; the .ics carries the weekly repeat.
+export function outlookCalendarUrl(form: LeadFormConfig, now: Date = new Date()): string {
+  const { start } = nextOccurrence(form.schedule, now);
+  const startUtc = zonedToUtc(start, form.schedule.tz);
+  const endUtc = new Date(startUtc.getTime() + form.schedule.durationMinutes * 60_000);
+  const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const q = new URLSearchParams({
+    path: "/calendar/action/compose",
+    rru: "addevent",
+    subject: form.calendar.title,
+    startdt: iso(startUtc),
+    enddt: iso(endUtc),
+    body: description(form),
+    location: location(form),
+  });
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${q.toString()}`;
 }
 
 const esc = (s: string) =>

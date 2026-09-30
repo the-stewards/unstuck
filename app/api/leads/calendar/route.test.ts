@@ -12,6 +12,12 @@ describe("GET /api/leads/calendar", () => {
     expect(await res.text()).toContain("RRULE:FREQ=WEEKLY;BYDAY=TH");
   });
 
+  it("serves the same file inline for Apple Calendar (?inline=1)", async () => {
+    const res = await get("?form=webinar&inline=1");
+    expect(res.headers.get("content-disposition")).toContain("inline");
+    expect(res.headers.get("content-type")).toContain("text/calendar");
+  });
+
   it("404s an unknown or missing form", async () => {
     expect((await get("?form=nope")).status).toBe(404);
     expect((await get("")).status).toBe(404);

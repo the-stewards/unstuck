@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCalendarPageUrl, getLeadForm } from "@/lib/lead-forms";
 import { getLeadCount } from "@/lib/leads";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
-import { googleCalendarUrl, nextSessionDateLabel, nextSessionLabel } from "@/lib/lead-calendar";
+import { googleCalendarUrl, nextSessionDateLabel, nextSessionLabel, outlookCalendarUrl } from "@/lib/lead-calendar";
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: LEAD_CORS_HEADERS });
@@ -46,7 +46,10 @@ export async function GET(request: Request) {
         calendarPageUrl: getCalendarPageUrl(form, new URL(request.url).origin),
         calendar: {
           google: googleCalendarUrl(form),
+          outlook: outlookCalendarUrl(form),
           ics: `${new URL(request.url).origin}/api/leads/calendar?form=${form.key}`,
+          // Same file, served inline so iOS/macOS offer "Add to Calendar" instead of a download.
+          apple: `${new URL(request.url).origin}/api/leads/calendar?form=${form.key}&inline=1`,
         },
       },
     },

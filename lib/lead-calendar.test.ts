@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEAD_FORMS } from "@/lib/lead-forms";
-import { buildIcs, googleCalendarUrl, nextOccurrence, nextSessionDateLabel, nextSessionLabel } from "@/lib/lead-calendar";
+import { buildIcs, googleCalendarUrl, nextOccurrence, nextSessionDateLabel, nextSessionLabel, outlookCalendarUrl } from "@/lib/lead-calendar";
 
 const form = LEAD_FORMS.webinar;
 
@@ -104,5 +104,26 @@ describe("nextSessionDateLabel", () => {
     expect(at("2026-10-30T16:00:00Z")).toBe("Thursday, November 5, 2026 at 12:00 PM ET");
     expect(at("2026-12-29T16:00:00Z")).toBe("Thursday, December 31, 2026 at 12:00 PM ET");
     expect(at("2026-12-31T18:00:00Z")).toBe("Thursday, January 7, 2027 at 12:00 PM ET");
+  });
+});
+
+describe("outlookCalendarUrl", () => {
+  const q = (iso: string) => new URL(outlookCalendarUrl(form, new Date(iso))).searchParams;
+
+  it("converts noon Eastern to the right UTC instant in daylight time (UTC-4)", () => {
+    const p = q("2026-09-30T16:00:00Z");
+    expect(p.get("startdt")).toBe("2026-10-01T16:00:00Z");
+    expect(p.get("enddt")).toBe("2026-10-01T17:00:00Z");
+    expect(p.get("rru")).toBe("addevent");
+  });
+
+  it("uses UTC-5 once standard time starts (Nov 1, 2026)", () => {
+    expect(q("2026-10-30T16:00:00Z").get("startdt")).toBe("2026-11-05T17:00:00Z");
+  });
+
+  it("targets the Outlook compose deep link with the event title", () => {
+    const url = new URL(outlookCalendarUrl(form, new Date("2026-09-30T16:00:00Z")));
+    expect(url.origin + url.pathname).toBe("https://outlook.live.com/calendar/0/deeplink/compose");
+    expect(url.searchParams.get("subject")).toBe(form.calendar.title);
   });
 });
