@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getLeadForm } from "@/lib/lead-forms";
+import { nextSessionLabel } from "@/lib/lead-calendar";
 import { sendAdminAlert } from "@/lib/notify";
 
 // Delivers lead_outbox rows (written atomically with each RSVP by the
@@ -26,6 +27,15 @@ export interface FlushResult {
   skipped: boolean;
 }
 
+// A malformed timestamp must not make the whole delivery fail.
+function safeNextSession(schedule: Parameters<typeof nextSessionLabel>[0], createdAt: unknown): string | null {
+  try {
+    return nextSessionLabel(schedule, createdAt ? new Date(String(createdAt)) : new Date());
+  } catch {
+    return null;
+  }
+}
+
 // Flat JSON, stable field names: this is the contract Zaps map against.
 function buildZapierPayload(row: OutboxRow) {
   const p = row.payload;
@@ -37,6 +47,8 @@ function buildZapierPayload(row: OutboxRow) {
     form_key: p.form_key ?? null,
     event_name: form?.eventName ?? null,
     event_date: form?.eventDate ?? null,
+    // "This Thursday, October 1 at 12:00 PM ET", relative to when they RSVPed.
+    next_session: form ? safeNextSession(form.schedule, p.created_at) : null,
     first_name: p.first_name ?? null,
     last_name: p.last_name ?? null,
     email: p.email ?? null,

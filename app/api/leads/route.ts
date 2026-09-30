@@ -4,6 +4,7 @@ import { submitLead } from "@/lib/leads";
 import { sendLeadConfirmationEmail } from "@/lib/notify";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
 import { flushLeadOutbox } from "@/lib/lead-outbox";
+import { googleCalendarUrl, nextSessionLabel } from "@/lib/lead-calendar";
 
 const MAX_BODY_BYTES = 10_000;
 
@@ -54,9 +55,16 @@ export async function POST(request: Request) {
     const form = getLeadForm(result.formKey);
     await Promise.allSettled([
       form
-        ? sendLeadConfirmationEmail(result.email, result.firstName, form.eventName, form.eventDate).catch((err) =>
-            console.error("Lead confirmation email failed:", err)
-          )
+        ? sendLeadConfirmationEmail(
+            result.email,
+            result.firstName,
+            form.eventName,
+            nextSessionLabel(form.schedule),
+            {
+              google: googleCalendarUrl(form),
+              ics: `${process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin}/api/leads/calendar?form=${form.key}`,
+            }
+          ).catch((err) => console.error("Lead confirmation email failed:", err))
         : Promise.resolve(),
       result.leadId ? flushLeadOutbox({ leadId: result.leadId }) : Promise.resolve(),
       flushLeadOutbox({ limit: 5 }),

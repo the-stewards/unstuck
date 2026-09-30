@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { LEAD_FORMS } from "@/lib/lead-forms";
-import { buildIcs, googleCalendarUrl, nextOccurrence } from "@/lib/lead-calendar";
+import { buildIcs, googleCalendarUrl, nextOccurrence, nextSessionLabel } from "@/lib/lead-calendar";
 
 const form = LEAD_FORMS.webinar;
 
 describe("nextOccurrence (Thursday 12:00 ET)", () => {
   it("from a Tuesday returns that week's Thursday", () => {
     // Tue 2026-09-29 12:00 ET
-    expect(nextOccurrence(form.schedule, new Date("2026-09-29T16:00:00Z"))).toEqual({
+    expect(nextOccurrence(form.schedule, new Date("2026-09-29T16:00:00Z"))).toMatchObject({
       startLocal: "20261001T120000",
       endLocal: "20261001T130000",
     });
@@ -66,5 +66,26 @@ describe("buildIcs", () => {
 
   it("with no join URL says the link is in the confirmation email", () => {
     expect(ics.replace(/\r\n /g, "")).toContain("confirmation email");
+  });
+});
+
+describe("nextSessionLabel", () => {
+  const at = (iso: string) => nextSessionLabel(form.schedule, new Date(iso));
+
+  it('reads "This Thursday" for Sun-Wed RSVPs', () => {
+    expect(at("2026-09-27T16:00:00Z")).toBe("This Thursday, October 1 at 12:00 PM ET"); // Sunday
+    expect(at("2026-09-30T16:00:00Z")).toBe("This Thursday, October 1 at 12:00 PM ET"); // Wednesday
+  });
+
+  it('reads "Next Thursday" for Fri/Sat RSVPs and Thursday after the session starts', () => {
+    expect(at("2026-10-02T16:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Friday
+    expect(at("2026-10-03T16:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Saturday
+    expect(at("2026-10-01T17:00:00Z")).toBe("Next Thursday, October 8 at 12:00 PM ET"); // Thu 1pm ET
+  });
+
+  it('reads "Today" on Thursday before noon ET, and crosses month boundaries', () => {
+    expect(at("2026-10-01T14:00:00Z")).toBe("Today, October 1 at 12:00 PM ET");
+    expect(at("2026-10-27T16:00:00Z")).toBe("This Thursday, October 29 at 12:00 PM ET");
+    expect(at("2026-10-30T16:00:00Z")).toBe("Next Thursday, November 5 at 12:00 PM ET");
   });
 });

@@ -71,7 +71,13 @@ describe("POST /api/leads", () => {
     });
     expect(call[1].p_consent_text).toContain("reminders for Unstuck");
     expect(call[1].p_consent_text).not.toContain("client-supplied");
-    expect(emailMock).toHaveBeenCalledWith("jane@example.com", "Jane", expect.any(String), expect.any(String));
+    expect(emailMock).toHaveBeenCalledWith(
+      "jane@example.com",
+      "Jane",
+      expect.any(String),
+      expect.stringMatching(/^(This|Next) Thursday, [A-Za-z]+ [0-9]+ at 12:00 PM ET$|^Today, /),
+      { google: expect.stringContaining("calendar.google.com"), ics: expect.stringContaining("/api/leads/calendar?form=webinar") }
+    );
   });
 
   it("rejects consent wording that differs from the server's (stale cached form)", async () => {

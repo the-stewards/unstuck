@@ -63,3 +63,32 @@ describe("sendAccessGrantedEmail", () => {
     await expect(sendAccessGrantedEmail("student@example.com")).resolves.toBeUndefined();
   });
 });
+
+describe("sendLeadConfirmationEmail", () => {
+  beforeEach(() => {
+    sendMock.mockReset();
+  });
+
+  it("shows the session date and both save-to-calendar buttons", async () => {
+    sendMock.mockResolvedValue({ data: {}, error: null });
+    const { sendLeadConfirmationEmail } = await import("@/lib/notify");
+    await sendLeadConfirmationEmail("jane@example.com", "Jane", "Unstuck Live Training", "This Thursday, October 1 at 12:00 PM ET", {
+      google: "https://calendar.google.com/calendar/render?a=1&b=2",
+      ics: "https://unstuck.stewards.loan/api/leads/calendar?form=webinar",
+    });
+    const html = sendMock.mock.calls[0][0].html as string;
+    expect(html).toContain("This Thursday, October 1 at 12:00 PM ET");
+    expect(html).toContain("Save it to your calendar");
+    expect(html).toContain("https://calendar.google.com/calendar/render?a=1&amp;b=2");
+    expect(html).toContain("/api/leads/calendar?form=webinar");
+  });
+
+  it("omits the calendar block when no links are given, and escapes the name", async () => {
+    sendMock.mockResolvedValue({ data: {}, error: null });
+    const { sendLeadConfirmationEmail } = await import("@/lib/notify");
+    await sendLeadConfirmationEmail("x@example.com", "<b>Hi</b>", "Event", "Date");
+    const html = sendMock.mock.calls[0][0].html as string;
+    expect(html).not.toContain("Save it to your calendar");
+    expect(html).toContain("&lt;b&gt;Hi&lt;/b&gt;");
+  });
+});

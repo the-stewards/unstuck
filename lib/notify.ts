@@ -200,7 +200,8 @@ export async function sendLeadConfirmationEmail(
   email: string,
   firstName: string,
   eventName: string,
-  eventDate: string
+  eventDate: string,
+  calendar?: { google: string; ics: string }
 ): Promise<void> {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -221,6 +222,16 @@ export async function sendLeadConfirmationEmail(
             <h1 style="margin:0 0 20px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:32px; line-height:1.05; text-transform:uppercase; color:#fffae8;">You're <span style="color:#f76732;">in</span>, ${esc(firstName)}</h1>
             <p style="margin:0 0 16px 0; font-family:'Frank Ruhl Libre', Georgia, serif; font-weight:300; font-size:18px; line-height:1.75; color:rgba(255,250,232,0.85);">Your seat is reserved for <strong style="color:#fffae8;">${esc(eventName)}</strong>.</p>
             <p style="margin:0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:18px; letter-spacing:0.05em; text-transform:uppercase; color:#f76732;">${esc(eventDate)}</p>
+            ${
+              calendar
+                ? `<p style="margin:28px 0 12px 0; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.1em; text-transform:uppercase; color:#fffae8;">Save it to your calendar</p>
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td style="background:#f76732; border-radius:2px;"><a href="${esc(calendar.google)}" style="display:inline-block; padding:14px 22px; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.1em; text-transform:uppercase; color:#fffae8; text-decoration:none;">Google Calendar</a></td>
+              <td width="10"></td>
+              <td style="border:1px solid #f76732; border-radius:2px;"><a href="${esc(calendar.ics)}" style="display:inline-block; padding:13px 22px; font-family:'Barlow Condensed', Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:0.1em; text-transform:uppercase; color:#fffae8; text-decoration:none;">Apple / Outlook (.ics)</a></td>
+            </tr></table>`
+                : ""
+            }
           </td></tr>
         </table>
       </td></tr>
