@@ -76,18 +76,19 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     },
     upsell: {
       // Short on purpose: the upsell page above the widget does the selling
-      // (VSL + the six tools), so this card only closes the sale.
-      eyebrow: "Your seat is saved",
+      // (VSL + the toolkit), so this card only closes the sale. No price
+      // anchor ("normally $X") unless it has genuinely been sold at that price.
+      eyebrow: "Optional upgrade for UNSTUCK attendees",
       headline: "Add the Move-Up Starter Kit",
-      body: "Normally $197. Yours for $47 today, delivered instantly.",
+      body: "Short videos, checklists, and scripts to help you evaluate your next move.",
       bullets: [
-        "Six tools to prep your family, your home, and your finances",
-        "Instant access after checkout, so you can start tonight",
-        "Optional. Your free Move-Up Plan doesn't depend on it",
+        "Tools you can use one question at a time",
+        "Instant access after checkout",
+        "No purchase required to attend UNSTUCK",
       ],
       price: "$47 one-time",
-      cta: "Yes, Add The Starter Kit - $47",
-      decline: "No thanks, just save my seat",
+      cta: "Get Instant Access For $47",
+      decline: "No thanks, continue to my calendar link",
       terms: "By purchasing you agree to the Terms of Service and Privacy Policy.",
       checkoutUrl: "https://buy.stripe.com/fZu28qb7kgDO7arec60Fi01",
     },
