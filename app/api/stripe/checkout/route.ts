@@ -32,16 +32,40 @@ async function logCheckoutAttempt(email: string, sessionId: string): Promise<voi
   }
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// The step 2 (upsell) page only knows the opaque lead id from its URL, never
+// the visitor's email. Resolve it server-side so no personal data rides in
+// URLs or through the browser. Empty string = not found.
+async function emailForLead(leadId: string): Promise<string> {
+  if (!UUID.test(leadId)) return "";
+  try {
+    const { data } = await createAdminClient().from("leads").select("email").eq("id", leadId).maybeSingle();
+    return typeof data?.email === "string" ? data.email.toLowerCase() : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  const leadId = typeof body?.leadId === "string" ? body.leadId : "";
+  const email = leadId
+    ? await emailForLead(leadId)
+    : typeof body?.email === "string"
+      ? body.email.trim().toLowerCase()
+      : "";
   // Set by the webinar RSVP upsell so the success page can show the
   // save-to-calendar step. Only a known form key is ever echoed into the URL.
   const from = typeof body?.from === "string" && getLeadForm(body.from) ? body.from : "";
 
   if (!email || !email.includes("@")) {
     return NextResponse.json(
-      { error: "A valid email is required." },
+      {
+        error: leadId
+          ? "We could not find your RSVP. Please RSVP again."
+          : "A valid email is required.",
+      },
       { status: 400, headers: CORS_HEADERS }
     );
   }

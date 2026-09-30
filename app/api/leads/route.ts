@@ -56,7 +56,9 @@ export async function POST(request: Request) {
       }
     }
 
-    return json({ ok: true });
+    // leadId is the visitor's own opaque id; the step 2 page uses it (instead
+    // of name/email in the URL) to start checkout for this RSVP.
+    return json({ ok: true, leadId: result.leadId });
   } catch (err) {
     console.error("POST /api/leads failed:", err);
     return json({ error: "Something went wrong. Try again." }, 500);

@@ -1,15 +1,24 @@
-// Browser source for the embeddable lead form. Served by
+// Browser source for the embeddable lead widgets. Served by
 // app/embed/lead-widget.js/route.ts as a <script src>, which survives CMS
-// sanitizers (Brilliant Directories strips inline <script> bodies but keeps
+// sanitizers (Brilliant Directors strips inline <script> bodies but keeps
 // src references - see app/embed/checkout-widget.js). Plain ES5 on purpose:
 // it runs on arbitrary host pages, unbundled and untranspiled.
+//
+// Two widgets, one script:
+//   Step 1  <div data-unstuck-lead="webinar" data-next-url="https://.../offer"></div>
+//           RSVP form. On success redirects to data-next-url?lid=<lead id>
+//           (no personal data in the URL); without data-next-url it shows the
+//           save-to-calendar step in place.
+//   Step 2  <div data-unstuck-upsell="webinar"></div>
+//           The $47 offer, meant to sit under a VSL on its own page. Reads the
+//           lead id from ?lid= (or data-lid). "Yes" -> Stripe Checkout,
+//           "No thanks" -> converts in place to save-to-calendar.
 //
 // Rules for editing this string: no backticks and no "${" (it lives inside a
 // JS template literal), and every style is inline so host-page CSS can't
 // reach in and break the layout.
 export const LEAD_WIDGET_JS = `
 (function () {
-  var SELECTOR = "[data-unstuck-lead]";
   var DEFAULT_API = "https://unstuck.stewards.loan";
 
   // API origin = wherever this script was loaded from, so the same file works
@@ -22,6 +31,14 @@ export const LEAD_WIDGET_JS = `
 
   var F_HEAD = "'Barlow Condensed', Arial, sans-serif";
   var F_BODY = "'Frank Ruhl Libre', Georgia, serif";
+
+  var CARD = "box-sizing:border-box;max-width:520px;width:100%;margin:0 auto;background:#403d3d;border-left:4px solid #f76732;border-radius:0 3px 3px 0;padding:32px;text-align:left;";
+  var H2 = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:32px;line-height:1.05;text-transform:uppercase;color:#fffae8;";
+  var EYEBROW = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;";
+  var BODY = "margin:0 0 16px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);";
+  var BTN = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:#f76732;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;padding:16px 24px;border:none;border-radius:2px;cursor:pointer;";
+  var BTN_GHOST = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:transparent;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 24px;border:1px solid #f76732;border-radius:2px;cursor:pointer;";
+  var ERR = "display:none;margin:12px 0 0 0;font-family:" + F_BODY + ";font-size:15px;color:#ffb199;";
 
   function ensureFonts() {
     if (document.getElementById("unstuck-lead-fonts")) return;
@@ -74,99 +91,49 @@ export const LEAD_WIDGET_JS = `
     requestAnimationFrame(step);
   }
 
-  function build(target, meta) {
+  // Leave the current page. Used for the redirect to the step 2 page and to
+  // Stripe (which cannot be framed, so break out of an iframe host too).
+  function goTo(url) {
+    try { (window.top || window).location.href = url; } catch (e) { window.location.href = url; }
+  }
+
+  function api(path, options) {
+    return fetch(API + path, options).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok) throw new Error(data.error || "Something went wrong. Try again.");
+        return data;
+      });
+    });
+  }
+
+  // Confirmation + save to calendar. Shared end of both flows.
+  function showCalendar(card, meta) {
+    var form = meta.form;
+    card.innerHTML = "";
+    card.appendChild(el("h2", H2, form.successTitle));
+    card.appendChild(el("p", BODY, form.successMessage));
+    card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
+    card.appendChild(el("h3", "margin:0 0 8px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:22px;text-transform:uppercase;color:#fffae8;", form.calendarStep.title));
+    card.appendChild(el("p", BODY, form.calendarStep.message));
+    var google = el("a", BTN + "margin-bottom:10px;", form.calendarStep.googleLabel);
+    google.href = form.calendar.google; google.target = "_blank"; google.rel = "noopener noreferrer";
+    var ics = el("a", BTN_GHOST, form.calendarStep.icsLabel);
+    ics.href = form.calendar.ics;
+    card.appendChild(google);
+    card.appendChild(ics);
+  }
+
+  // ---- Step 1: RSVP form ----
+  function buildForm(target, meta) {
     var form = meta.form;
     var minCount = parseInt(target.getAttribute("data-min-count"), 10);
     if (isNaN(minCount)) minCount = meta.minCount;
     var ref = target.getAttribute("data-ref") || "";
     var ctaLabel = target.getAttribute("data-cta") || form.cta;
+    var nextUrl = target.getAttribute("data-next-url") || "";
+    if (!/^https?:\\/\\//i.test(nextUrl)) nextUrl = "";
 
-    var card = el("div", "box-sizing:border-box;max-width:520px;width:100%;margin:0 auto;background:#403d3d;border-left:4px solid #f76732;border-radius:0 3px 3px 0;padding:32px;text-align:left;");
-
-    var submittedEmail = "";
-    var H2 = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:32px;line-height:1.05;text-transform:uppercase;color:#fffae8;";
-    var EYEBROW = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;";
-    var BODY = "margin:0 0 16px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);";
-    var BTN = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:#f76732;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;padding:16px 24px;border:none;border-radius:2px;cursor:pointer;";
-    var BTN_GHOST = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:transparent;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 24px;border:1px solid #f76732;border-radius:2px;cursor:pointer;";
-
-    // Step 3: confirmation + save to calendar.
-    function showCalendar() {
-      card.innerHTML = "";
-      card.appendChild(el("h2", H2, form.successTitle));
-      card.appendChild(el("p", BODY, form.successMessage));
-      card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
-      card.appendChild(el("h3", "margin:0 0 8px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:22px;text-transform:uppercase;color:#fffae8;", meta.form.calendarStep.title));
-      card.appendChild(el("p", BODY, meta.form.calendarStep.message));
-      var google = el("a", BTN + "margin-bottom:10px;", meta.form.calendarStep.googleLabel);
-      google.href = meta.form.calendar.google; google.target = "_blank"; google.rel = "noopener noreferrer";
-      var ics = el("a", BTN_GHOST, meta.form.calendarStep.icsLabel);
-      ics.href = meta.form.calendar.ics;
-      card.appendChild(google);
-      card.appendChild(ics);
-    }
-
-    // Step 2: the $47 offer. Buying goes to Stripe (success page shows the
-    // calendar step); declining goes straight to the calendar step.
-    function showUpsell() {
-      var u = form.upsell;
-      card.innerHTML = "";
-      card.appendChild(el("p", EYEBROW, u.eyebrow));
-      card.appendChild(el("h2", H2, u.headline));
-      card.appendChild(el("p", BODY, u.body));
-      var list = el("ul", "list-style:none;margin:0 0 16px 0;padding:0;");
-      for (var i = 0; i < u.bullets.length; i++) {
-        var li = el("li", "margin:0 0 8px 0;padding-left:24px;position:relative;font-family:" + F_BODY + ";font-size:16px;line-height:1.5;color:rgba(255,250,232,0.9);", u.bullets[i]);
-        li.insertBefore(el("span", "position:absolute;left:0;color:#f76732;font-weight:700;", "\\u2713"), li.firstChild);
-        list.appendChild(li);
-      }
-      card.appendChild(list);
-      card.appendChild(el("p", "margin:0 0 14px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.05em;text-transform:uppercase;color:#f76732;", u.price));
-
-      var buy = el("button", BTN + "margin-bottom:10px;", u.cta);
-      buy.type = "button";
-      var no = el("button", BTN_GHOST, u.decline);
-      no.type = "button";
-      var err = el("p", "display:none;margin:12px 0 0 0;font-family:" + F_BODY + ";font-size:15px;color:#ffb199;");
-      err.setAttribute("role", "alert");
-      var terms = el("p", "margin:14px 0 0 0;font-family:" + F_BODY + ";font-size:12px;line-height:1.5;color:rgba(255,250,232,0.55);", u.terms + " ");
-      var t1 = el("a", "color:rgba(255,250,232,0.8);", "Terms");
-      t1.href = API + "/terms"; t1.target = "_blank"; t1.rel = "noopener noreferrer";
-      var t2 = el("a", "color:rgba(255,250,232,0.8);margin-left:8px;", "Privacy");
-      t2.href = API + "/privacy"; t2.target = "_blank"; t2.rel = "noopener noreferrer";
-      terms.appendChild(t1); terms.appendChild(t2);
-
-      buy.addEventListener("click", function () {
-        err.style.display = "none";
-        buy.disabled = true;
-        buy.textContent = "Redirecting\\u2026";
-        fetch(API + "/api/stripe/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: submittedEmail, from: form.key })
-        })
-          .then(function (response) {
-            return response.json().catch(function () { return {}; }).then(function (data) {
-              if (!response.ok || !data.url) throw new Error(data.error || "Could not start checkout. Try again in a moment.");
-              // Stripe cannot be framed, so leave the iframe/host page.
-              try { (window.top || window).location.href = data.url; } catch (e) { window.location.href = data.url; }
-            });
-          })
-          .catch(function (e) {
-            err.textContent = e.message || "Could not start checkout. Try again in a moment.";
-            err.style.display = "block";
-            buy.disabled = false;
-            buy.textContent = u.cta;
-          });
-      });
-      no.addEventListener("click", showCalendar);
-
-      card.appendChild(buy);
-      card.appendChild(no);
-      card.appendChild(err);
-      card.appendChild(terms);
-    }
-
+    var card = el("div", CARD);
 
     if (meta.count >= minCount) {
       var pill = el("div", "display:flex;width:fit-content;align-items:center;gap:8px;margin:0 auto 16px auto;padding:6px 12px;border:1px solid rgba(247,103,50,0.5);border-radius:999px;");
@@ -178,11 +145,10 @@ export const LEAD_WIDGET_JS = `
       countUp(num, meta.count);
     }
 
-    card.appendChild(el("h2", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:32px;line-height:1.05;text-transform:uppercase;color:#fffae8;", form.title));
+    card.appendChild(el("h2", H2, form.title));
     card.appendChild(el("p", "margin:0 0 22px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);", form.subtitle));
 
     var formEl = document.createElement("form");
-    formEl.noValidate = false;
     formEl.style.cssText = "margin:0;padding:0;";
 
     var first = field("text", "firstName", "First name", "given-name");
@@ -214,11 +180,11 @@ export const LEAD_WIDGET_JS = `
     consentWrap.appendChild(el("span", "font-family:" + F_BODY + ";font-size:13px;line-height:1.5;color:rgba(255,250,232,0.7);", form.consentText));
     formEl.appendChild(consentWrap);
 
-    var button = el("button", "display:block;width:100%;background:#f76732;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;padding:16px 40px;border:none;border-radius:2px;cursor:pointer;", ctaLabel);
+    var button = el("button", BTN, ctaLabel);
     button.type = "submit";
     formEl.appendChild(button);
 
-    var errorEl = el("p", "display:none;margin:12px 0 0 0;font-family:" + F_BODY + ";font-size:15px;color:#ffb199;");
+    var errorEl = el("p", ERR);
     errorEl.setAttribute("role", "alert");
     formEl.appendChild(errorEl);
 
@@ -231,7 +197,7 @@ export const LEAD_WIDGET_JS = `
       var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
       var timer = controller ? setTimeout(function () { controller.abort(); }, 12000) : null;
 
-      fetch(API + "/api/leads", {
+      api("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller ? controller.signal : undefined,
@@ -247,14 +213,15 @@ export const LEAD_WIDGET_JS = `
           website: trap.value
         })
       })
-        .then(function (response) {
-          // An edge/proxy error (502, 413) can return HTML; never show a
-          // JSON parse error to the visitor.
-          return response.json().catch(function () { return {}; }).then(function (data) {
-            if (!response.ok) throw new Error(data.error || "Something went wrong. Try again.");
-            submittedEmail = email.value.trim();
-            if (form.upsell) showUpsell(); else showCalendar();
-          });
+        .then(function (data) {
+          if (nextUrl) {
+            // Step 2 lives on its own page (VSL + offer). Only the opaque
+            // lead id travels in the URL, never name/email/phone.
+            button.textContent = "One moment\\u2026";
+            goTo(nextUrl + (nextUrl.indexOf("?") > -1 ? "&" : "?") + (data.leadId ? "lid=" + encodeURIComponent(data.leadId) : "rsvp=1"));
+            return;
+          }
+          showCalendar(card, meta);
         })
         .catch(function (err) {
           var aborted = err && err.name === "AbortError";
@@ -270,29 +237,108 @@ export const LEAD_WIDGET_JS = `
     target.appendChild(card);
   }
 
-  function init() {
-    var targets = document.querySelectorAll(SELECTOR);
-    for (var i = 0; i < targets.length; i++) {
-      (function (target) {
-        // Idempotent: CMS editors can execute an embedded script more than
-        // once (preview + live render), and a page may include this script
-        // once per widget. Each target is built exactly once.
-        if (target.getAttribute("data-unstuck-ready") === "true") return;
-        target.setAttribute("data-unstuck-ready", "true");
+  // ---- Step 2: the $47 offer (sits under the VSL on its own page) ----
+  function buildUpsell(target, meta) {
+    var form = meta.form;
+    var u = form.upsell;
+    var card = el("div", CARD);
+    target.appendChild(card);
+    if (!u) { showCalendar(card, meta); return; }
 
-        var key = target.getAttribute("data-unstuck-lead") || "webinar";
-        ensureFonts();
-        fetch(API + "/api/leads/count?form=" + encodeURIComponent(key))
-          .then(function (r) {
-            if (!r.ok) throw new Error("form unavailable");
-            return r.json();
-          })
-          .then(function (meta) { build(target, meta); })
-          .catch(function () {
-            target.setAttribute("data-unstuck-ready", "false");
-            target.appendChild(el("p", "font-family:" + F_BODY + ";font-size:15px;color:#403d3d;", "This form is unavailable right now. Please try again later."));
-          });
-      })(targets[i]);
+    var lid = target.getAttribute("data-lid") || "";
+    if (!lid) {
+      try { lid = new URLSearchParams(window.location.search).get("lid") || ""; } catch (e) {}
+    }
+
+    card.appendChild(el("p", EYEBROW, u.eyebrow));
+    card.appendChild(el("h2", H2, u.headline));
+    card.appendChild(el("p", BODY, u.body));
+    var list = el("ul", "list-style:none;margin:0 0 16px 0;padding:0;");
+    for (var i = 0; i < u.bullets.length; i++) {
+      var li = el("li", "margin:0 0 8px 0;padding-left:24px;position:relative;font-family:" + F_BODY + ";font-size:16px;line-height:1.5;color:rgba(255,250,232,0.9);", u.bullets[i]);
+      li.insertBefore(el("span", "position:absolute;left:0;color:#f76732;font-weight:700;", "\\u2713"), li.firstChild);
+      list.appendChild(li);
+    }
+    card.appendChild(list);
+    card.appendChild(el("p", "margin:0 0 14px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.05em;text-transform:uppercase;color:#f76732;", u.price));
+
+    // Someone who lands here without an RSVP link has no lead id, so ask for
+    // the email Stripe needs.
+    var emailInput = null;
+    if (!lid) {
+      emailInput = field("email", "email", "you@email.com", "email");
+      emailInput.style.marginBottom = "12px";
+      card.appendChild(emailInput);
+    }
+
+    var buy = el("button", BTN + "margin-bottom:10px;", u.cta);
+    buy.type = "button";
+    var no = el("button", BTN_GHOST, u.decline);
+    no.type = "button";
+    var err = el("p", ERR);
+    err.setAttribute("role", "alert");
+    var terms = el("p", "margin:14px 0 0 0;font-family:" + F_BODY + ";font-size:12px;line-height:1.5;color:rgba(255,250,232,0.55);", u.terms + " ");
+    var t1 = el("a", "color:rgba(255,250,232,0.8);", "Terms");
+    t1.href = API + "/terms"; t1.target = "_blank"; t1.rel = "noopener noreferrer";
+    var t2 = el("a", "color:rgba(255,250,232,0.8);margin-left:8px;", "Privacy");
+    t2.href = API + "/privacy"; t2.target = "_blank"; t2.rel = "noopener noreferrer";
+    terms.appendChild(t1); terms.appendChild(t2);
+
+    buy.addEventListener("click", function () {
+      err.style.display = "none";
+      if (emailInput && !emailInput.checkValidity()) { emailInput.reportValidity(); return; }
+      buy.disabled = true;
+      buy.textContent = "Redirecting\\u2026";
+      var body = { from: form.key };
+      if (lid) body.leadId = lid; else body.email = emailInput.value;
+      api("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(function (data) {
+          if (!data.url) throw new Error("Could not start checkout. Try again in a moment.");
+          goTo(data.url);
+        })
+        .catch(function (e) {
+          err.textContent = e.message || "Could not start checkout. Try again in a moment.";
+          err.style.display = "block";
+          buy.disabled = false;
+          buy.textContent = u.cta;
+        });
+    });
+    // Declining converts this same widget into the save-to-calendar step.
+    no.addEventListener("click", function () { showCalendar(card, meta); });
+
+    card.appendChild(buy);
+    card.appendChild(no);
+    card.appendChild(err);
+    card.appendChild(terms);
+  }
+
+  function mount(target, key, builder) {
+    // Idempotent: CMS editors can execute an embedded script more than
+    // once (preview + live render), and a page may include this script
+    // once per widget. Each target is built exactly once.
+    if (target.getAttribute("data-unstuck-ready") === "true") return;
+    target.setAttribute("data-unstuck-ready", "true");
+    ensureFonts();
+    api("/api/leads/count?form=" + encodeURIComponent(key))
+      .then(function (meta) { builder(target, meta); })
+      .catch(function () {
+        target.setAttribute("data-unstuck-ready", "false");
+        target.appendChild(el("p", "font-family:" + F_BODY + ";font-size:15px;color:#403d3d;", "This form is unavailable right now. Please try again later."));
+      });
+  }
+
+  function init() {
+    var forms = document.querySelectorAll("[data-unstuck-lead]");
+    for (var i = 0; i < forms.length; i++) {
+      mount(forms[i], forms[i].getAttribute("data-unstuck-lead") || "webinar", buildForm);
+    }
+    var offers = document.querySelectorAll("[data-unstuck-upsell]");
+    for (var j = 0; j < offers.length; j++) {
+      mount(offers[j], offers[j].getAttribute("data-unstuck-upsell") || "webinar", buildUpsell);
     }
   }
 

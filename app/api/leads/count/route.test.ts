@@ -23,7 +23,7 @@ describe("GET /api/leads/count", () => {
     expect(res.status).toBe(200);
     expect(data.count).toBe(137);
     expect(data.minCount).toBe(25);
-    expect(data.form.consentText).toContain("STOP");
+    expect(data.form.consentText).toContain("reminders for Unstuck");
     expect(res.headers.get("access-control-allow-origin")).toBe("*");
   });
 

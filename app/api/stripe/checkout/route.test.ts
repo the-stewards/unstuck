@@ -4,6 +4,16 @@ vi.mock("@/lib/stripe", () => ({
   getStripe: vi.fn(),
 }));
 
+const maybeSingle = vi.fn();
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    from: () => ({
+      select: () => ({ eq: () => ({ maybeSingle }) }),
+      insert: async () => ({ error: null }),
+    }),
+  }),
+}));
+
 import { getStripe } from "@/lib/stripe";
 import { POST } from "@/app/api/stripe/checkout/route";
 
@@ -71,5 +81,34 @@ describe("POST /api/stripe/checkout", () => {
     expect(urls[0]).toMatch(/&from=webinar$/);
     expect(urls[1]).not.toContain("from=");
     expect(urls[2]).not.toContain("from=");
+  });
+
+  describe("leadId (step 2 page: opaque id instead of email in the URL)", () => {
+    const LEAD = "109d1383-f723-4163-8c02-998598fc02d2";
+
+    it("resolves the email server-side and ignores any client-supplied email", async () => {
+      maybeSingle.mockResolvedValue({ data: { email: "Jane@Example.com" }, error: null });
+      const create = vi.fn(async (_args: { customer_email: string }) => ({ url: "https://checkout.stripe.com/s", id: "cs_1" }));
+      vi.mocked(getStripe).mockReturnValue({ checkout: { sessions: { create } } } as never);
+
+      const res = await POST(checkoutRequest({ leadId: LEAD, email: "attacker@example.com", from: "webinar" }));
+      expect(res.status).toBe(200);
+      expect(create.mock.calls[0][0].customer_email).toBe("jane@example.com");
+    });
+
+    it("400s an unknown lead id without calling Stripe", async () => {
+      maybeSingle.mockResolvedValue({ data: null, error: null });
+      const res = await POST(checkoutRequest({ leadId: LEAD }));
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toMatch(/RSVP/);
+      expect(getStripe).not.toHaveBeenCalled();
+    });
+
+    it("400s a malformed lead id without touching the database", async () => {
+      maybeSingle.mockClear();
+      const res = await POST(checkoutRequest({ leadId: "not-a-uuid" }));
+      expect(res.status).toBe(400);
+      expect(maybeSingle).not.toHaveBeenCalled();
+    });
   });
 });

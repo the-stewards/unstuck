@@ -54,7 +54,7 @@ describe("POST /api/leads", () => {
   it("saves a valid lead, normalizes email, and stores the SERVER's consent wording", async () => {
     const res = await POST(req(valid));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true });
+    expect(await res.json()).toEqual({ ok: true, leadId: "lead-uuid-1" });
 
     const call = rpcMock.mock.calls.find((c) => c[0] === "submit_lead")!;
     expect(call[1]).toMatchObject({
@@ -64,7 +64,7 @@ describe("POST /api/leads", () => {
       p_ip: "1.2.3.4",
       p_user_agent: "vitest",
     });
-    expect(call[1].p_consent_text).toContain("Reply STOP to opt out");
+    expect(call[1].p_consent_text).toContain("reminders for Unstuck");
     expect(call[1].p_consent_text).not.toContain("client-supplied");
     expect(emailMock).toHaveBeenCalledWith("jane@example.com", "Jane", expect.any(String), expect.any(String));
   });
