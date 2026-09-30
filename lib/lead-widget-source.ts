@@ -93,7 +93,6 @@ export const LEAD_WIDGET_JS = `
     // Step 3: confirmation + save to calendar.
     function showCalendar() {
       card.innerHTML = "";
-      card.appendChild(el("p", EYEBROW, "The Stewards"));
       card.appendChild(el("h2", H2, form.successTitle));
       card.appendChild(el("p", BODY, form.successMessage));
       card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
@@ -168,10 +167,9 @@ export const LEAD_WIDGET_JS = `
       card.appendChild(terms);
     }
 
-    card.appendChild(el("p", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;", "The Stewards"));
 
     if (meta.count >= minCount) {
-      var pill = el("div", "display:inline-flex;align-items:center;gap:8px;margin:0 0 14px 0;padding:6px 12px;border:1px solid rgba(247,103,50,0.5);border-radius:999px;");
+      var pill = el("div", "display:flex;width:fit-content;align-items:center;gap:8px;margin:0 auto 16px auto;padding:6px 12px;border:1px solid rgba(247,103,50,0.5);border-radius:999px;");
       pill.appendChild(el("span", "width:8px;height:8px;border-radius:50%;background:#f76732;animation:unstuckLeadPulse 1.6s ease-in-out infinite;display:inline-block;"));
       var num = el("span", "font-family:" + F_HEAD + ";font-weight:700;font-size:18px;color:#fffae8;", "0");
       pill.appendChild(num);
