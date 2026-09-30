@@ -83,6 +83,91 @@ export const LEAD_WIDGET_JS = `
 
     var card = el("div", "box-sizing:border-box;max-width:520px;width:100%;margin:0 auto;background:#403d3d;border-left:4px solid #f76732;border-radius:0 3px 3px 0;padding:32px;text-align:left;");
 
+    var submittedEmail = "";
+    var H2 = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:32px;line-height:1.05;text-transform:uppercase;color:#fffae8;";
+    var EYEBROW = "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;";
+    var BODY = "margin:0 0 16px 0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);";
+    var BTN = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:#f76732;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;padding:16px 24px;border:none;border-radius:2px;cursor:pointer;";
+    var BTN_GHOST = "display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:transparent;color:#fffae8;font-family:" + F_HEAD + ";font-weight:700;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 24px;border:1px solid #f76732;border-radius:2px;cursor:pointer;";
+
+    // Step 3: confirmation + save to calendar.
+    function showCalendar() {
+      card.innerHTML = "";
+      card.appendChild(el("p", EYEBROW, "The Stewards"));
+      card.appendChild(el("h2", H2, form.successTitle));
+      card.appendChild(el("p", BODY, form.successMessage));
+      card.appendChild(el("hr", "border:0;border-top:1px solid rgba(255,250,232,0.2);margin:20px 0;"));
+      card.appendChild(el("h3", "margin:0 0 8px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:22px;text-transform:uppercase;color:#fffae8;", meta.form.calendarStep.title));
+      card.appendChild(el("p", BODY, meta.form.calendarStep.message));
+      var google = el("a", BTN + "margin-bottom:10px;", meta.form.calendarStep.googleLabel);
+      google.href = meta.form.calendar.google; google.target = "_blank"; google.rel = "noopener noreferrer";
+      var ics = el("a", BTN_GHOST, meta.form.calendarStep.icsLabel);
+      ics.href = meta.form.calendar.ics;
+      card.appendChild(google);
+      card.appendChild(ics);
+    }
+
+    // Step 2: the $47 offer. Buying goes to Stripe (success page shows the
+    // calendar step); declining goes straight to the calendar step.
+    function showUpsell() {
+      var u = form.upsell;
+      card.innerHTML = "";
+      card.appendChild(el("p", EYEBROW, u.eyebrow));
+      card.appendChild(el("h2", H2, u.headline));
+      card.appendChild(el("p", BODY, u.body));
+      var list = el("ul", "list-style:none;margin:0 0 16px 0;padding:0;");
+      for (var i = 0; i < u.bullets.length; i++) {
+        var li = el("li", "margin:0 0 8px 0;padding-left:24px;position:relative;font-family:" + F_BODY + ";font-size:16px;line-height:1.5;color:rgba(255,250,232,0.9);", u.bullets[i]);
+        li.insertBefore(el("span", "position:absolute;left:0;color:#f76732;font-weight:700;", "\\u2713"), li.firstChild);
+        list.appendChild(li);
+      }
+      card.appendChild(list);
+      card.appendChild(el("p", "margin:0 0 14px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:20px;letter-spacing:0.05em;text-transform:uppercase;color:#f76732;", u.price));
+
+      var buy = el("button", BTN + "margin-bottom:10px;", u.cta);
+      buy.type = "button";
+      var no = el("button", BTN_GHOST, u.decline);
+      no.type = "button";
+      var err = el("p", "display:none;margin:12px 0 0 0;font-family:" + F_BODY + ";font-size:15px;color:#ffb199;");
+      err.setAttribute("role", "alert");
+      var terms = el("p", "margin:14px 0 0 0;font-family:" + F_BODY + ";font-size:12px;line-height:1.5;color:rgba(255,250,232,0.55);", u.terms + " ");
+      var t1 = el("a", "color:rgba(255,250,232,0.8);", "Terms");
+      t1.href = API + "/terms"; t1.target = "_blank"; t1.rel = "noopener noreferrer";
+      var t2 = el("a", "color:rgba(255,250,232,0.8);margin-left:8px;", "Privacy");
+      t2.href = API + "/privacy"; t2.target = "_blank"; t2.rel = "noopener noreferrer";
+      terms.appendChild(t1); terms.appendChild(t2);
+
+      buy.addEventListener("click", function () {
+        err.style.display = "none";
+        buy.disabled = true;
+        buy.textContent = "Redirecting\\u2026";
+        fetch(API + "/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: submittedEmail, from: form.key })
+        })
+          .then(function (response) {
+            return response.json().catch(function () { return {}; }).then(function (data) {
+              if (!response.ok || !data.url) throw new Error(data.error || "Could not start checkout. Try again in a moment.");
+              // Stripe cannot be framed, so leave the iframe/host page.
+              try { (window.top || window).location.href = data.url; } catch (e) { window.location.href = data.url; }
+            });
+          })
+          .catch(function (e) {
+            err.textContent = e.message || "Could not start checkout. Try again in a moment.";
+            err.style.display = "block";
+            buy.disabled = false;
+            buy.textContent = u.cta;
+          });
+      });
+      no.addEventListener("click", showCalendar);
+
+      card.appendChild(buy);
+      card.appendChild(no);
+      card.appendChild(err);
+      card.appendChild(terms);
+    }
+
     card.appendChild(el("p", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;", "The Stewards"));
 
     if (meta.count >= minCount) {
@@ -169,10 +254,8 @@ export const LEAD_WIDGET_JS = `
           // JSON parse error to the visitor.
           return response.json().catch(function () { return {}; }).then(function (data) {
             if (!response.ok) throw new Error(data.error || "Something went wrong. Try again.");
-            card.innerHTML = "";
-            card.appendChild(el("p", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:14px;letter-spacing:0.3em;text-transform:uppercase;color:#f76732;", "The Stewards"));
-            card.appendChild(el("h2", "margin:0 0 10px 0;font-family:" + F_HEAD + ";font-weight:700;font-size:32px;line-height:1.05;text-transform:uppercase;color:#fffae8;", form.successTitle));
-            card.appendChild(el("p", "margin:0;font-family:" + F_BODY + ";font-weight:300;font-size:17px;line-height:1.6;color:rgba(255,250,232,0.85);", form.successMessage));
+            submittedEmail = email.value.trim();
+            if (form.upsell) showUpsell(); else showCalendar();
           });
         })
         .catch(function (err) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getLeadForm } from "@/lib/lead-forms";
 import { getLeadCount } from "@/lib/leads";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
+import { googleCalendarUrl } from "@/lib/lead-calendar";
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: LEAD_CORS_HEADERS });
@@ -38,6 +39,12 @@ export async function GET(request: Request) {
         consentText: form.consentText,
         successTitle: form.successTitle,
         successMessage: form.successMessage,
+        upsell: form.upsell ?? null,
+        calendarStep: form.calendarStep,
+        calendar: {
+          google: googleCalendarUrl(form),
+          ics: `${new URL(request.url).origin}/api/leads/calendar?form=${form.key}`,
+        },
       },
     },
     {

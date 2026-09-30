@@ -58,4 +58,18 @@ describe("POST /api/stripe/checkout", () => {
     expect(response.status).toBe(500);
     expect(data.error).toBeTruthy();
   });
+
+  it("adds ?from= to the success URL only for a known lead form (upsell flow)", async () => {
+    const create = vi.fn(async (_args: { success_url: string }) => ({ url: "https://checkout.stripe.com/s", id: "cs_1" }));
+    vi.mocked(getStripe).mockReturnValue({ checkout: { sessions: { create } } } as never);
+
+    await POST(checkoutRequest({ email: "buyer@example.com", from: "webinar" }));
+    await POST(checkoutRequest({ email: "buyer@example.com", from: "https://evil.example" }));
+    await POST(checkoutRequest({ email: "buyer@example.com" }));
+
+    const urls = create.mock.calls.map((c) => c[0].success_url);
+    expect(urls[0]).toMatch(/&from=webinar$/);
+    expect(urls[1]).not.toContain("from=");
+    expect(urls[2]).not.toContain("from=");
+  });
 });

@@ -18,6 +18,22 @@ export interface LeadFormConfig {
   // Sent in the confirmation email and shown on the success state.
   eventName: string;
   eventDate: string;
+  // Recurring session, used to build the calendar links. Wall-clock time in tz.
+  schedule: { weekday: number; hour: number; minute: number; tz: string; durationMinutes: number };
+  calendar: { title: string; description: string; joinUrl: string };
+  // Step 2 of the flow (after the RSVP): the $47 offer. Omit to skip straight
+  // to the calendar step.
+  upsell?: {
+    eyebrow: string;
+    headline: string;
+    body: string;
+    bullets: string[];
+    price: string;
+    cta: string;
+    decline: string;
+    terms: string;
+  };
+  calendarStep: { title: string; message: string; googleLabel: string; icsLabel: string };
 }
 
 export const LEAD_FORMS: Record<string, LeadFormConfig> = {
@@ -35,6 +51,33 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     eventName: "Unstuck Live Training",
     // Recurring weekly session; Eastern time assumed (Ohio).
     eventDate: "Every Thursday at 12:00 PM ET",
+    schedule: { weekday: 4, hour: 12, minute: 0, tz: "America/New_York", durationMinutes: 60 },
+    calendar: {
+      title: "Unstuck Live Training",
+      description: "Free live training from The Stewards.",
+      // TODO(Ryan): paste the live join link (Zoom etc.) here. Empty = "link is in your confirmation email".
+      joinUrl: "",
+    },
+    upsell: {
+      eyebrow: "Your seat is saved",
+      headline: "Want the full UNSTUCK Starter Kit?",
+      body: "Add it now and start before the live session.",
+      bullets: [
+        "Six short video modules you can finish in an afternoon",
+        "Companion checklists and scripts for every module",
+        "Bonuses, plus instant access the moment you check out",
+      ],
+      price: "$47 one-time",
+      cta: "Yes, Get Instant Access - $47",
+      decline: "No thanks, just save my seat",
+      terms: "By purchasing you agree to the Terms of Service and Privacy Policy.",
+    },
+    calendarStep: {
+      title: "Add it to your calendar",
+      message: "Every Thursday at 12:00 PM ET. Save it now so you do not miss it.",
+      googleLabel: "Google Calendar",
+      icsLabel: "Apple / Outlook (.ics)",
+    },
   },
 };
 

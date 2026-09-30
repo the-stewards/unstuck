@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getLeadForm } from "@/lib/lead-forms";
 
 // Open to any origin: this route only ever creates a Stripe Checkout Session
 // (no cookies, no session, no secret data in the response — just a redirect
@@ -34,6 +35,9 @@ async function logCheckoutAttempt(email: string, sessionId: string): Promise<voi
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  // Set by the webinar RSVP upsell so the success page can show the
+  // save-to-calendar step. Only a known form key is ever echoed into the URL.
+  const from = typeof body?.from === "string" && getLeadForm(body.from) ? body.from : "";
 
   if (!email || !email.includes("@")) {
     return NextResponse.json(
@@ -52,7 +56,7 @@ export async function POST(request: Request) {
       payment_method_types: ["card"],
       line_items: [{ price: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID!, quantity: 1 }],
       customer_email: email,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchase/success?session_id={CHECKOUT_SESSION_ID}${from ? `&from=${from}` : ""}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/purchase`,
     });
 
