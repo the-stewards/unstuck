@@ -65,13 +65,15 @@ function timeLabel(schedule: LeadFormConfig["schedule"]): string {
 }
 
 // Human label for the next session, relative to when the RSVP happened:
-// "This Thursday at 12:00 PM ET" (no calendar date, by design). Sessions 5+ days out (a Friday or
-// Saturday RSVP, or a Thursday RSVP after the session started) read as "Next
-// Thursday", and a same-day RSVP before the session as "Today".
+// "This Thursday at 12:00 PM ET" (no calendar date, by design). The ad cycle runs
+// Friday through Thursday, so any RSVP up to the next Thursday's session is for
+// "This Thursday" (Friday included). Only a Thursday RSVP made after that day's
+// session has started rolls to "Next Thursday", and a same-day RSVP before the
+// session reads as "Today".
 export function nextSessionLabel(schedule: LeadFormConfig["schedule"], now: Date = new Date()): string {
   const { delta } = nextOccurrence(schedule, now);
   const day = DAY_NAMES[schedule.weekday];
-  const prefix = delta === 0 ? "Today" : delta <= 4 ? `This ${day}` : `Next ${day}`;
+  const prefix = delta === 0 ? "Today" : delta <= 6 ? `This ${day}` : `Next ${day}`;
   return `${prefix} at ${timeLabel(schedule)}`;
 }
 
