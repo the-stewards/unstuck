@@ -18,3 +18,7 @@ Apply 0008 FIRST, then merge. New code calls submit_lead with `p_homeowner_statu
 
 ## BD-side (not code)
 Create /unstuck.registered as a copy of /unstuck.save; pixel base code (init + PageView) only, no `fbq('track','Lead')`; noindex in the page SEO settings.
+
+## Update 2026-10-05: DEPLOYED
+Migration 0008 applied by Ryan via Supabase's assistant (verified: column present; single 11-arg submit_lead). Merged to master (362411e) and deployed. Live API check with +alias test emails: owner/renter/outside_area stored correctly, no-answer stored NULL (still registers), bad value -> 400, all 4 got the confirmation email and were delivered to Zapier with homeowner_status in the payload. Test leads deleted by id. NOTE: those 4 test RSVPs DID reach the real Zap (cannot be recalled) - delete them from any downstream sheet/CRM.
+Remaining: create /unstuck.registered in BD (copy of /unstuck.save, pixel PageView only, noindex), then pixel acceptance tests 4-6.
