@@ -95,11 +95,12 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     calendar: {
       title: "Unstuck Live Training",
       description: "Free live training from The Stewards.",
-      // Zoom registration page for the weekly series. Attendees register once and
-      // Zoom emails their personal join link.
-      joinUrl: "https://us06web.zoom.us/meeting/register/bO4ZcgXzSu-IGfhgJDf4yg",
-      joinLabel: "Confirm Your Seat On Zoom",
-      joinNote: "Register once on Zoom and it will email you your personal join link.",
+      // Weekly Zoom series (Thursdays 12:00 PM ET). Registration is OFF, so this one
+      // regular invite link works for everyone and every week: attendees only fill
+      // out our form.
+      joinUrl: "https://us06web.zoom.us/j/89765741511?pwd=k6iQitM2mWR0F0yLrw5U58sFJpNw3K.1",
+      joinLabel: "Join The Session",
+      joinNote: "Same link every Thursday at 12:00 PM ET. Save this email.",
     },
     upsell: {
       // Short on purpose: the upsell page above the widget does the selling
