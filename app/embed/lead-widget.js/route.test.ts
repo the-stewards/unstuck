@@ -24,8 +24,13 @@ describe("lead widget script", () => {
     expect(LEAD_WIDGET_JS).toContain("form.registeredPageUrl");
   });
 
-  it("never fires ad-pixel events itself (Lead is fired only by the page it lands on)", () => {
-    expect(LEAD_WIDGET_JS).not.toMatch(/fbq\s*\(/);
+  it("fires the pixel Lead event only for owners, only when enabled, with the lead id as eventID", () => {
+    expect(LEAD_WIDGET_JS).toContain('selectedStatus() === "owner_central_ohio" && form.fireLeadOnRegister');
+    expect(LEAD_WIDGET_JS).toContain('typeof window.fbq === "function"');
+    expect(LEAD_WIDGET_JS).toContain('{ eventID: data.leadId }');
+    // Only one pixel call in the whole script, and it is the Lead call.
+    expect((LEAD_WIDGET_JS.match(/fbq\(/g) ?? []).length).toBe(2);
+    expect(LEAD_WIDGET_JS).not.toMatch(/fbq\("track", "(Purchase|CompleteRegistration|PageView)"/);
   });
 
   it("initializes each target once (idempotent for CMS double-execution)", () => {

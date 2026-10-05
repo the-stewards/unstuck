@@ -62,6 +62,10 @@ export interface LeadFormConfig {
   // registered and gets the same confirmation, reminders and join link.
   homeownerQuestion: { legend: string; options: { value: HomeownerStatus; label: string }[] };
   registeredPageUrl?: string;
+  // When true the widget fires the ad pixel's Lead event for qualified owners as
+  // soon as the RSVP saves (needs the host page to load the pixel). Turn on only
+  // together with removing the Lead call from the thank-you page.
+  fireLeadOnRegister?: boolean;
 }
 
 // Server-owned on purpose: the checkout route builds Stripe's success_url from
@@ -129,6 +133,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       ],
     },
     registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
+    fireLeadOnRegister: false,
   },
 };
 

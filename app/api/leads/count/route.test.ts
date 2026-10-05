@@ -35,6 +35,7 @@ describe("GET /api/leads/count", () => {
       "renter",
       "outside_area",
     ]);
+    expect(data.form.fireLeadOnRegister).toBe(false); // off until the page-level Lead call is removed
     expect(data.form.registeredPageUrl).toBe("https://www.stewards.loan/unstuck.registered");
     expect(data.form.consentText).toContain("reminders for Unstuck");
     expect(res.headers.get("access-control-allow-origin")).toBe("*");

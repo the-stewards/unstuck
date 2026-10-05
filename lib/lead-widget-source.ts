@@ -273,21 +273,37 @@ export const LEAD_WIDGET_JS = `
         })
       })
         .then(function (data) {
-          // Not a Central Ohio homeowner: still fully registered, but skip the
-          // homeowner upsell and land on the no-Lead-event confirmation page.
-          if (selectedStatus() !== "owner_central_ohio" && form.registeredPageUrl) {
-            button.textContent = "One moment\u2026";
-            goTo(form.registeredPageUrl);
-            return;
+          // Ad pixel: report a Lead the moment a qualified (Central Ohio
+          // homeowner) RSVP is saved, not on a later page the visitor may never
+          // reach. Off unless the form config turns it on, because the host page's
+          // own Lead call must be removed at the same time or it double counts.
+          // eventID = the lead id, so Meta can de-duplicate any server-side copy.
+          var delay = 0;
+          if (selectedStatus() === "owner_central_ohio" && form.fireLeadOnRegister && typeof window.fbq === "function") {
+            try {
+              if (data.leadId) window.fbq("track", "Lead", {}, { eventID: data.leadId });
+              else window.fbq("track", "Lead");
+              delay = 300; // let the pixel request leave before the page navigates
+            } catch (e) {}
           }
-          if (nextUrl) {
-            // Step 2 lives on its own page (VSL + offer). Only the opaque
-            // lead id travels in the URL, never name/email/phone.
-            button.textContent = "One moment\\u2026";
-            goTo(nextUrl + (nextUrl.indexOf("?") > -1 ? "&" : "?") + (data.leadId ? "lid=" + encodeURIComponent(data.leadId) : "rsvp=1"));
-            return;
+          function route() {
+            // Not a Central Ohio homeowner: still fully registered, but skip the
+            // homeowner upsell and land on the no-Lead-event confirmation page.
+            if (selectedStatus() !== "owner_central_ohio" && form.registeredPageUrl) {
+              button.textContent = "One moment\u2026";
+              goTo(form.registeredPageUrl);
+              return;
+            }
+            if (nextUrl) {
+              // Step 2 lives on its own page (VSL + offer). Only the opaque
+              // lead id travels in the URL, never name/email/phone.
+              button.textContent = "One moment\u2026";
+              goTo(nextUrl + (nextUrl.indexOf("?") > -1 ? "&" : "?") + (data.leadId ? "lid=" + encodeURIComponent(data.leadId) : "rsvp=1"));
+              return;
+            }
+            showCalendar(card, meta);
           }
-          showCalendar(card, meta);
+          if (delay) setTimeout(route, delay); else route();
         })
         .catch(function (err) {
           var aborted = err && err.name === "AbortError";

@@ -46,6 +46,7 @@ export async function GET(request: Request) {
         calendarPageUrl: getCalendarPageUrl(form, new URL(request.url).origin),
         homeownerQuestion: form.homeownerQuestion,
         registeredPageUrl: form.registeredPageUrl ?? null,
+        fireLeadOnRegister: form.fireLeadOnRegister ?? false,
         calendar: {
           google: googleCalendarUrl(form),
           outlook: outlookCalendarUrl(form),
