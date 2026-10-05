@@ -23,7 +23,9 @@ export interface LeadFormConfig {
   eventDate: string;
   // Recurring session, used to build the calendar links. Wall-clock time in tz.
   schedule: { weekday: number; hour: number; minute: number; tz: string; durationMinutes: number };
-  calendar: { title: string; description: string; joinUrl: string };
+  // joinUrl: the live-session link (Zoom). Shown as a button in the confirmation
+  // email and written into every calendar event. Empty = "link in your email".
+  calendar: { title: string; description: string; joinUrl: string; joinLabel?: string; joinNote?: string };
   // Step 2 of the flow (after the RSVP): the $47 offer. Omit to skip straight
   // to the calendar step.
   upsell?: {
@@ -93,8 +95,11 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     calendar: {
       title: "Unstuck Live Training",
       description: "Free live training from The Stewards.",
-      // TODO(Ryan): paste the live join link (Zoom etc.) here. Empty = "link is in your confirmation email".
-      joinUrl: "",
+      // Zoom registration page for the weekly series. Attendees register once and
+      // Zoom emails their personal join link.
+      joinUrl: "https://us06web.zoom.us/meeting/register/bO4ZcgXzSu-IGfhgJDf4yg",
+      joinLabel: "Confirm Your Seat On Zoom",
+      joinNote: "Register once on Zoom and it will email you your personal join link.",
     },
     upsell: {
       // Short on purpose: the upsell page above the widget does the selling

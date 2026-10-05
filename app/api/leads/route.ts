@@ -63,7 +63,10 @@ export async function POST(request: Request) {
             {
               google: googleCalendarUrl(form),
               ics: `${process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin}/api/leads/calendar?form=${form.key}`,
-            }
+            },
+            form.calendar.joinUrl
+              ? { url: form.calendar.joinUrl, label: form.calendar.joinLabel ?? "Join the session", note: form.calendar.joinNote }
+              : undefined
           ).catch((err) => console.error("Lead confirmation email failed:", err))
         : Promise.resolve(),
       result.leadId ? flushLeadOutbox({ leadId: result.leadId }) : Promise.resolve(),

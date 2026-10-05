@@ -76,7 +76,8 @@ describe("POST /api/leads", () => {
       "Jane",
       expect.any(String),
       expect.stringMatching(/^(This|Next) Thursday at 12:00 PM ET$|^Today at 12:00 PM ET$/),
-      { google: expect.stringContaining("calendar.google.com"), ics: expect.stringContaining("/api/leads/calendar?form=webinar") }
+      { google: expect.stringContaining("calendar.google.com"), ics: expect.stringContaining("/api/leads/calendar?form=webinar") },
+      expect.objectContaining({ url: expect.stringContaining("zoom.us/meeting/register/"), label: expect.any(String) })
     );
   });
 

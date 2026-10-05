@@ -83,6 +83,24 @@ describe("sendLeadConfirmationEmail", () => {
     expect(html).toContain("/api/leads/calendar?form=webinar");
   });
 
+  it("shows a Zoom join button with its note when a join link is given, and omits it otherwise", async () => {
+    sendMock.mockResolvedValue({ data: {}, error: null });
+    const { sendLeadConfirmationEmail } = await import("@/lib/notify");
+    await sendLeadConfirmationEmail("jane@example.com", "Jane", "Event", "This Thursday at 12:00 PM ET", undefined, {
+      url: "https://us06web.zoom.us/meeting/register/abc",
+      label: "Confirm Your Seat On Zoom",
+      note: "Register once on Zoom.",
+    });
+    const html = sendMock.mock.calls.at(-1)![0].html as string;
+    expect(html).toContain("Your Zoom link");
+    expect(html).toContain('href="https://us06web.zoom.us/meeting/register/abc"');
+    expect(html).toContain("Confirm Your Seat On Zoom");
+    expect(html).toContain("Register once on Zoom.");
+
+    await sendLeadConfirmationEmail("jane@example.com", "Jane", "Event", "Date");
+    expect(sendMock.mock.calls.at(-1)![0].html as string).not.toContain("Your Zoom link");
+  });
+
   it("omits the calendar block when no links are given, and escapes the name", async () => {
     sendMock.mockResolvedValue({ data: {}, error: null });
     const { sendLeadConfirmationEmail } = await import("@/lib/notify");

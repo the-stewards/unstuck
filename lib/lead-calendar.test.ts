@@ -65,7 +65,14 @@ describe("buildIcs", () => {
   });
 
   it("with no join URL says the link is in the confirmation email", () => {
-    expect(ics.replace(/\r\n /g, "")).toContain("confirmation email");
+    const noJoin = buildIcs({ ...form, calendar: { ...form.calendar, joinUrl: "" } }, new Date("2026-09-29T16:00:00Z"));
+    expect(noJoin.replace(/\r\n /g, "")).toContain("confirmation email");
+  });
+
+  it("with a join URL puts it in the event description and location", () => {
+    const flat = ics.replace(/\r\n /g, "");
+    expect(flat).toContain("Join: " + form.calendar.joinUrl);
+    expect(flat).toContain("LOCATION:" + form.calendar.joinUrl);
   });
 });
 
