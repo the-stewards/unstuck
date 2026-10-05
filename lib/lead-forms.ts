@@ -133,7 +133,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       ],
     },
     registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
-    fireLeadOnRegister: false,
+    fireLeadOnRegister: true,
   },
 };
 
