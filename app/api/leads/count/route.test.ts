@@ -29,6 +29,13 @@ describe("GET /api/leads/count", () => {
     expect(data.nextSessionDate).toMatch(/^Thursday, [A-Za-z]+ [0-9]+, 20[0-9]{2} at 12:00 PM ET$/);
     expect(data.nextSession).toMatch(/^(This|Next) Thursday at 12:00 PM ET$|^Today at 12:00 PM ET$/);
     expect(data.form.calendarPageUrl).toBe("https://www.stewards.loan/unstuck.save");
+    expect(data.form.homeownerQuestion.legend).toBe("Do you currently own your home in Central Ohio?");
+    expect(data.form.homeownerQuestion.options.map((o: { value: string }) => o.value)).toEqual([
+      "owner_central_ohio",
+      "renter",
+      "outside_area",
+    ]);
+    expect(data.form.registeredPageUrl).toBe("https://www.stewards.loan/unstuck.registered");
     expect(data.form.consentText).toContain("reminders for Unstuck");
     expect(res.headers.get("access-control-allow-origin")).toBe("*");
   });

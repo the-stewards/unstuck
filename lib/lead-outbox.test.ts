@@ -57,6 +57,7 @@ function row(over: Partial<Row> = {}): Row {
       phone: "6145550123",
       sms_consent: true,
       ref: null,
+      homeowner_status: "renter",
       created_at: "2026-09-30T12:00:00Z",
     },
     attempts: 0,
@@ -100,6 +101,7 @@ describe("flushLeadOutbox", () => {
       email: "jane@example.com",
       phone: "6145550123",
       sms_consent: true,
+      homeowner_status: "renter",
       event_name: "Unstuck Live Training",
       event_date: "Every Thursday at 12:00 PM ET",
       next_session: "This Thursday at 12:00 PM ET", // RSVP created Wed 2026-09-30

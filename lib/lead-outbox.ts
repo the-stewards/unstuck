@@ -61,6 +61,8 @@ function buildZapierPayload(row: OutboxRow) {
     phone: p.phone ?? null,
     sms_consent: p.sms_consent ?? null,
     ref: p.ref ?? null,
+    // owner_central_ohio | renter | outside_area (null on leads from before the question existed)
+    homeowner_status: p.homeowner_status ?? null,
     created_at: p.created_at ?? null,
   };
 }

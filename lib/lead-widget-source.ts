@@ -202,6 +202,27 @@ export const LEAD_WIDGET_JS = `
     formEl.appendChild(email);
     formEl.appendChild(phone);
 
+    // Qualifying question (required radio group, accessible fieldset/legend).
+    var hq = form.homeownerQuestion;
+    var statusFieldset = document.createElement("fieldset");
+    statusFieldset.style.cssText = "border:0;margin:0 0 16px 0;padding:0;min-width:0;";
+    var statusLegend = el("legend", "padding:0;margin:0 0 10px 0;font-family:" + F_BODY + ";font-size:15px;line-height:1.4;color:#fffae8;", hq.legend);
+    statusFieldset.appendChild(statusLegend);
+    for (var s = 0; s < hq.options.length; s++) {
+      var optLabel = el("label", "display:flex;gap:10px;align-items:center;margin:0 0 8px 0;cursor:pointer;font-family:" + F_BODY + ";font-size:15px;line-height:1.4;color:rgba(255,250,232,0.85);");
+      var radio = document.createElement("input");
+      radio.type = "radio"; radio.name = "homeowner_status"; radio.value = hq.options[s].value; radio.required = true;
+      radio.style.cssText = "margin:0;flex:0 0 auto;width:16px;height:16px;accent-color:#f76732;";
+      optLabel.appendChild(radio);
+      optLabel.appendChild(document.createTextNode(hq.options[s].label));
+      statusFieldset.appendChild(optLabel);
+    }
+    formEl.appendChild(statusFieldset);
+    function selectedStatus() {
+      var checked = formEl.querySelector('input[name="homeowner_status"]:checked');
+      return checked ? checked.value : "";
+    }
+
     // Honeypot: real users never see or fill this.
     var trap = document.createElement("input");
     trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off";
@@ -244,6 +265,7 @@ export const LEAD_WIDGET_JS = `
           lastName: last.value,
           email: email.value,
           phone: phone.value,
+          homeowner_status: selectedStatus(),
           smsConsent: consent.checked,
           consentText: form.consentText,
           ref: ref,
@@ -251,6 +273,13 @@ export const LEAD_WIDGET_JS = `
         })
       })
         .then(function (data) {
+          // Not a Central Ohio homeowner: still fully registered, but skip the
+          // homeowner upsell and land on the no-Lead-event confirmation page.
+          if (selectedStatus() !== "owner_central_ohio" && form.registeredPageUrl) {
+            button.textContent = "One moment\u2026";
+            goTo(form.registeredPageUrl);
+            return;
+          }
           if (nextUrl) {
             // Step 2 lives on its own page (VSL + offer). Only the opaque
             // lead id travels in the URL, never name/email/phone.

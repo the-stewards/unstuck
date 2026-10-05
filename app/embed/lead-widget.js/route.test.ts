@@ -16,6 +16,18 @@ describe("lead widget script", () => {
     expect(() => new Function(LEAD_WIDGET_JS)).not.toThrow();
   });
 
+  it("renders the required homeowner question and routes non-owners to the registered page", () => {
+    expect(LEAD_WIDGET_JS).toContain('input[name="homeowner_status"]');
+    expect(LEAD_WIDGET_JS).toContain("radio.required = true");
+    expect(LEAD_WIDGET_JS).toContain("homeowner_status: selectedStatus()");
+    expect(LEAD_WIDGET_JS).toContain('selectedStatus() !== "owner_central_ohio"');
+    expect(LEAD_WIDGET_JS).toContain("form.registeredPageUrl");
+  });
+
+  it("never fires ad-pixel events itself (Lead is fired only by the page it lands on)", () => {
+    expect(LEAD_WIDGET_JS).not.toMatch(/fbq\s*\(/);
+  });
+
   it("initializes each target once (idempotent for CMS double-execution)", () => {
     expect(LEAD_WIDGET_JS).toContain("data-unstuck-ready");
   });

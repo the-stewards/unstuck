@@ -117,6 +117,27 @@ describe("POST /api/leads", () => {
     expect(call[1].p_ref.startsWith("source=facebook&campaign=")).toBe(true);
   });
 
+  it.each(["owner_central_ohio", "renter", "outside_area"])("stores homeowner_status=%s with the lead", async (status) => {
+    const res = await POST(req({ ...valid, homeowner_status: status }));
+    expect(res.status).toBe(200);
+    const call = rpcMock.mock.calls.find((c) => c[0] === "submit_lead")!;
+    expect(call[1].p_homeowner_status).toBe(status);
+  });
+
+  it("rejects an unknown homeowner_status without writing anything", async () => {
+    const res = await POST(req({ ...valid, homeowner_status: "millionaire" }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/own your home/i);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it("still registers a submission with no homeowner_status (script cached from before the question existed)", async () => {
+    const res = await POST(req(valid));
+    expect(res.status).toBe(200);
+    const call = rpcMock.mock.calls.find((c) => c[0] === "submit_lead")!;
+    expect(call[1].p_homeowner_status).toBeNull();
+  });
+
   it("honeypot: fakes success without touching the database or email", async () => {
     const res = await POST(req({ ...valid, website: "http://spam.example" }));
     expect(res.status).toBe(200);

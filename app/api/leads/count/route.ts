@@ -44,6 +44,8 @@ export async function GET(request: Request) {
         upsell: form.upsell ?? null,
         calendarStep: form.calendarStep,
         calendarPageUrl: getCalendarPageUrl(form, new URL(request.url).origin),
+        homeownerQuestion: form.homeownerQuestion,
+        registeredPageUrl: form.registeredPageUrl ?? null,
         calendar: {
           google: googleCalendarUrl(form),
           outlook: outlookCalendarUrl(form),

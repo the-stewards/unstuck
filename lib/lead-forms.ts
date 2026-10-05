@@ -3,6 +3,9 @@
 // sent from the browser, so what gets stored is exactly what we displayed.
 // Add a form by adding a key; unknown keys are rejected by the API.
 
+export const HOMEOWNER_STATUSES = ["owner_central_ohio", "renter", "outside_area"] as const;
+export type HomeownerStatus = (typeof HOMEOWNER_STATUSES)[number];
+
 export interface LeadFormConfig {
   key: string;
   title: string;
@@ -52,6 +55,13 @@ export interface LeadFormConfig {
   // Directories page that embeds data-unstuck-calendar). Omit to use the
   // hosted page at /calendar/<key> on this app.
   calendarPageUrl?: string;
+  // The one qualifying question (homeowner_status). Anything other than
+  // "owner_central_ohio" skips the upsell and lands on registeredPageUrl, a copy
+  // of the calendar page whose ad pixel does NOT fire the Lead event, so ad
+  // platforms only optimize toward qualified homeowners. Everyone is still
+  // registered and gets the same confirmation, reminders and join link.
+  homeownerQuestion: { legend: string; options: { value: HomeownerStatus; label: string }[] };
+  registeredPageUrl?: string;
 }
 
 // Server-owned on purpose: the checkout route builds Stripe's success_url from
@@ -110,6 +120,15 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       purchasedMessage: "Payment received. Check your email for your UNSTUCK access link.",
     },
     calendarPageUrl: "https://www.stewards.loan/unstuck.save",
+    homeownerQuestion: {
+      legend: "Do you currently own your home in Central Ohio?",
+      options: [
+        { value: "owner_central_ohio", label: "Yes, I own my home in Central Ohio" },
+        { value: "renter", label: "No, I rent" },
+        { value: "outside_area", label: "No, I live outside Central Ohio" },
+      ],
+    },
+    registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
   },
 };
 

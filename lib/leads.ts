@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getLeadForm } from "@/lib/lead-forms";
+import { HOMEOWNER_STATUSES, getLeadForm } from "@/lib/lead-forms";
 
 const leadSchema = z.object({
   form: z.string(),
@@ -14,6 +14,10 @@ const leadSchema = z.object({
     .max(40)
     .refine((v) => v.replace(/\D/g, "").length >= 10, "Please enter a valid phone number."),
   smsConsent: z.literal(true, { error: "Please check the box to consent to texts." }),
+  // Optional on the wire so a widget script cached from before this question
+  // existed can still register people; the current widget always sends it (the
+  // radio group is required). A value that IS sent must be one of ours.
+  homeowner_status: z.enum(HOMEOWNER_STATUSES, { error: "Please tell us whether you own your home in Central Ohio." }).optional(),
   // The exact wording the visitor was shown. Must match the server's current
   // wording, so the stored consent record can never differ from what they saw.
   consentText: z.string().optional(),
@@ -95,6 +99,7 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     p_ip: ctx.ip,
     p_user_agent: ctx.userAgent.slice(0, 300),
     p_ref: lead.ref || null,
+    p_homeowner_status: lead.homeowner_status ?? null,
   });
 
   if (error) {
