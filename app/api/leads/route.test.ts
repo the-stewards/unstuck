@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpcMock = vi.fn();
+// leads lookup used to find the existing RSVP when a duplicate (same email, same session) comes in.
+const existingLeadMock = vi.fn();
+const chain: Record<string, unknown> = {};
+for (const m of ["select", "eq"]) chain[m] = () => chain;
+chain.maybeSingle = () => existingLeadMock();
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: vi.fn(() => ({ rpc: rpcMock })),
+  createAdminClient: vi.fn(() => ({ rpc: rpcMock, from: () => chain })),
 }));
 
 const emailMock = vi.fn();
@@ -51,6 +56,8 @@ describe("POST /api/leads", () => {
     rpcMock.mockReset();
     emailMock.mockReset();
     flushMock.mockReset();
+    existingLeadMock.mockReset();
+    existingLeadMock.mockResolvedValue({ data: null });
     flushMock.mockResolvedValue({ sent: 1, failed: 0, skipped: false });
     emailMock.mockResolvedValue(undefined);
     happyRpc();
@@ -183,6 +190,26 @@ describe("POST /api/leads", () => {
     expect(res.status).toBe(409);
     expect((await res.json()).error).toMatch(/already/i);
     expect(emailMock).not.toHaveBeenCalled();
+  });
+
+  it("saves the session the RSVP is for (p_session_at = next Thursday noon ET, as a UTC instant)", async () => {
+    await POST(req(valid));
+    const call = rpcMock.mock.calls.find((c) => c[0] === "submit_lead")!;
+    const at = new Date(call[1].p_session_at);
+    expect(Number.isNaN(at.getTime())).toBe(false);
+    expect(at.getUTCDay()).toBe(4); // a Thursday
+    expect([16, 17]).toContain(at.getUTCHours()); // 12:00 ET = 16:00Z (EDT) or 17:00Z (EST)
+    expect(at.getTime()).toBeGreaterThan(Date.now() - 60_000);
+  });
+
+  it("a second RSVP for the SAME session continues the flow (200 + the existing lead id) without re-sending anything", async () => {
+    rpcWith({ data: null, error: { code: "23505", message: "dup" } });
+    existingLeadMock.mockResolvedValue({ data: { id: "existing-lead-id" } });
+    const res = await POST(req(valid));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, leadId: "existing-lead-id" });
+    expect(emailMock).not.toHaveBeenCalled();
+    expect(flushMock).not.toHaveBeenCalled();
   });
 
   it("returns 429 when over the rate limit, without inserting", async () => {

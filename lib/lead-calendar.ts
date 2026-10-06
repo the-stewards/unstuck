@@ -59,7 +59,7 @@ const MONTH_NAMES = [
 ];
 const TZ_LABEL: Record<string, string> = { "America/New_York": "ET" };
 
-function timeLabel(schedule: LeadFormConfig["schedule"]): string {
+export function sessionTimeLabel(schedule: LeadFormConfig["schedule"]): string {
   const h12 = schedule.hour % 12 === 0 ? 12 : schedule.hour % 12;
   return `${h12}:${pad(schedule.minute)} ${schedule.hour < 12 ? "AM" : "PM"} ${TZ_LABEL[schedule.tz] ?? schedule.tz}`;
 }
@@ -74,14 +74,14 @@ export function nextSessionLabel(schedule: LeadFormConfig["schedule"], now: Date
   const { delta } = nextOccurrence(schedule, now);
   const day = DAY_NAMES[schedule.weekday];
   const prefix = delta === 0 ? "Today" : delta <= 6 ? `This ${day}` : `Next ${day}`;
-  return `${prefix} at ${timeLabel(schedule)}`;
+  return `${prefix} at ${sessionTimeLabel(schedule)}`;
 }
 
 // Exact-date label for the next session: "Thursday, October 1, 2026 at 12:00 PM ET".
 // Used by the landing page (data-format="date") and the Zapier payload.
 export function nextSessionDateLabel(schedule: LeadFormConfig["schedule"], now: Date = new Date()): string {
   const { start } = nextOccurrence(schedule, now);
-  return `${DAY_NAMES[schedule.weekday]}, ${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()} at ${timeLabel(schedule)}`;
+  return `${DAY_NAMES[schedule.weekday]}, ${MONTH_NAMES[start.getUTCMonth()]} ${start.getUTCDate()}, ${start.getUTCFullYear()} at ${sessionTimeLabel(schedule)}`;
 }
 
 // Wall-clock time in `tz` (a UTC-based Date holding the local fields) -> the
@@ -108,6 +108,13 @@ function zonedToUtc(wall: Date, tz: string): Date {
   let utc = new Date(wall.getTime() - offsetAt(wall));
   utc = new Date(wall.getTime() - offsetAt(utc));
   return utc;
+}
+
+// The real UTC instant the next session starts (what an RSVP is "for"). Reminders
+// are scheduled from this, so each RSVP only ever gets its own session's emails.
+export function nextSessionAt(schedule: LeadFormConfig["schedule"], now: Date = new Date()): Date {
+  const { start } = nextOccurrence(schedule, now);
+  return zonedToUtc(start, schedule.tz);
 }
 
 function description(form: LeadFormConfig): string {

@@ -68,6 +68,9 @@ export interface LeadFormConfig {
   // soon as the RSVP saves (needs the host page to load the pixel). Turn on only
   // together with removing the Lead call from the thank-you page.
   fireLeadOnRegister?: boolean;
+  // Public RSVP landing page; the post-session email sends people back here to
+  // grab a seat for the next cycle.
+  rsvpPageUrl?: string;
 }
 
 // Server-owned on purpose: the checkout route builds Stripe's success_url from
@@ -140,6 +143,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     },
     registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
     fireLeadOnRegister: true,
+    rsvpPageUrl: "https://www.stewards.loan/unstuck",
   },
 };
 

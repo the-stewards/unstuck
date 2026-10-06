@@ -47,6 +47,9 @@ export async function POST(request: Request) {
     const result = await submitLead(body, { ip, userAgent });
     if (!result.ok) return json({ error: result.error }, result.status);
 
+    // Same person, same session: they already got their email and Zap delivery.
+    if (result.duplicate) return json({ ok: true, leadId: result.leadId });
+
     // The lead is already saved; neither the confirmation email nor the
     // Zapier delivery may turn this into an error response (a retry would just
     // hit the 409). They run together so they add one round trip, not two.

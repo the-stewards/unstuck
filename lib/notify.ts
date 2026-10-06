@@ -7,7 +7,7 @@ let resendClient: Resend | undefined;
 // Lazy singleton — same reason as lib/stripe.ts: instantiating eagerly at
 // module scope crashes build-time route analysis when RESEND_API_KEY isn't
 // set yet.
-function getResend(): Resend {
+export function getResend(): Resend {
   if (!resendClient) {
     resendClient = new Resend(process.env.RESEND_API_KEY);
   }

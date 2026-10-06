@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { HOMEOWNER_STATUSES, getLeadForm } from "@/lib/lead-forms";
+import { nextSessionAt } from "@/lib/lead-calendar";
 
 const leadSchema = z.object({
   form: z.string(),
@@ -31,7 +32,16 @@ const leadSchema = z.object({
 });
 
 export type SubmitLeadResult =
-  | { ok: true; leadId: string | null; email: string; firstName: string; formKey: string }
+  | {
+      ok: true;
+      leadId: string | null;
+      email: string;
+      firstName: string;
+      formKey: string;
+      // True when this email already had an RSVP for the same session: the
+      // visitor just continues the flow, and no second email/Zap delivery is sent.
+      duplicate?: boolean;
+    }
   | { ok: false; status: 400 | 404 | 409 | 429 | 500; error: string };
 
 // Per IP per hour. Generous so a group on shared venue/office wifi is fine,
@@ -88,6 +98,8 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     return { ok: false, status: 429, error: "Too many submissions from this connection. Try again later." };
   }
 
+  const sessionAt = nextSessionAt(formConfig.schedule).toISOString();
+
   const { data, error } = await createAdminClient().rpc("submit_lead", {
     p_form_key: formConfig.key,
     p_first_name: lead.firstName,
@@ -100,10 +112,24 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     p_user_agent: ctx.userAgent.slice(0, 300),
     p_ref: lead.ref || null,
     p_homeowner_status: lead.homeowner_status ?? null,
+    p_session_at: sessionAt,
   });
 
   if (error) {
     if (error.code === "23505") {
+      // Same person, same session: treat as success so they can carry on to the
+      // next step (offer / calendar) instead of dead-ending on an error.
+      const existing = await findExistingLead(formConfig.key, lead.email, sessionAt);
+      if (existing) {
+        return {
+          ok: true,
+          leadId: existing,
+          email: lead.email.toLowerCase(),
+          firstName: lead.firstName,
+          formKey: formConfig.key,
+          duplicate: true,
+        };
+      }
       return { ok: false, status: 409, error: "This email has already reserved a seat." };
     }
     console.error("submit_lead failed:", error);
@@ -117,6 +143,21 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     firstName: lead.firstName,
     formKey: formConfig.key,
   };
+}
+
+async function findExistingLead(formKey: string, email: string, sessionAt: string): Promise<string | null> {
+  try {
+    const { data } = await createAdminClient()
+      .from("leads")
+      .select("id")
+      .eq("form_key", formKey)
+      .eq("email", email.trim().toLowerCase())
+      .eq("session_at", sessionAt)
+      .maybeSingle();
+    return typeof data?.id === "string" ? data.id : null;
+  } catch {
+    return null;
+  }
 }
 
 // Server-side truth, one exact count per form. No counter row to drift.
