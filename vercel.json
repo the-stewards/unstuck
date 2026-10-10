@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/nudge-stalled", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/flush-leads", "schedule": "0 15 * * *" }
+    { "path": "/api/cron/flush-leads", "schedule": "0 15 * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "0 20 * * *" }
   ]
 }
