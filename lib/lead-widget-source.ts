@@ -117,6 +117,10 @@ export const LEAD_WIDGET_JS = `
     var out = [];
     try {
       var p = new URLSearchParams(window.location.search);
+      // Short channel tag (?ref=email|sms|fb|ig|yt|meta|sig|blog), listed first.
+      // Letters, numbers, dash and underscore only, max 30 chars.
+      var r = (p.get("ref") || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 30);
+      if (r) out.push("ref=" + r);
       var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
       for (var i = 0; i < keys.length; i++) {
         var v = p.get(keys[i]);
