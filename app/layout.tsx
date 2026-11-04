@@ -20,7 +20,7 @@ const frankRuhlLibre = Frank_Ruhl_Libre({
 
 export const metadata: Metadata = {
   title: "UNSTUCK — Your Starter Kit",
-  description: "Your UNSTUCK Starter Kit: videos, checklists, and scripts to help you weigh your next move.",
+  description: "Your UNSTUCK Starter Kit: videos, checklists, and tools to help you weigh your next move.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

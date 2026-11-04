@@ -16,12 +16,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </h1>
         <hr className="mt-4 w-16 border-t-2 border-accent" />
         <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
-          Your videos, checklists, and scripts are inside, ready to help you weigh your next move
-          and get on the same page with your spouse.
+          Your videos, checklists, and tools are inside, ready to help you weigh your next move.
         </p>
         <p className="mt-3 font-body text-lg font-light leading-relaxed text-muted">
-          Enter the email you registered or purchased with. We&apos;ll send a link straight in, no
-          password needed.
+          Enter your email to get started. We&apos;ll send a link straight in, no password needed.
         </p>
 
         {hasInvalidLinkError && (
