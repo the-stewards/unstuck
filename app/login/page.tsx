@@ -9,15 +9,19 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <p className="font-heading text-base font-bold uppercase tracking-[0.3em] text-muted-light">
-          Private Starter Kit
+          Your UNSTUCK Starter Kit
         </p>
         <h1 className="mt-2 font-heading text-4xl font-bold uppercase leading-none tracking-tight text-foreground">
-          Enter <span className="text-accent">UNSTUCK</span>
+          From stuck to <span className="text-accent">clear</span>
         </h1>
         <hr className="mt-4 w-16 border-t-2 border-accent" />
         <p className="mt-4 font-body text-lg font-light leading-relaxed text-muted">
-          Just for attendees who acted before we closed the doors. Enter your email — we&apos;ll
-          send a link straight in, no password needed.
+          Your videos, checklists, and scripts are inside, ready to help you weigh your next move
+          and get on the same page with your spouse.
+        </p>
+        <p className="mt-3 font-body text-lg font-light leading-relaxed text-muted">
+          Enter the email you registered or purchased with. We&apos;ll send a link straight in, no
+          password needed.
         </p>
 
         {hasInvalidLinkError && (

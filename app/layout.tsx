@@ -19,8 +19,8 @@ const frankRuhlLibre = Frank_Ruhl_Libre({
 });
 
 export const metadata: Metadata = {
-  title: "UNSTUCK — Private Starter Kit",
-  description: "The private UNSTUCK Starter Kit — for attendees who acted before we closed the doors.",
+  title: "UNSTUCK — Your Starter Kit",
+  description: "Your UNSTUCK Starter Kit: videos, checklists, and scripts to help you weigh your next move.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
