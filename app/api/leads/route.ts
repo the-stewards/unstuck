@@ -4,6 +4,7 @@ import { submitLead } from "@/lib/leads";
 import { sendLeadConfirmationEmail } from "@/lib/notify";
 import { LEAD_CORS_HEADERS } from "@/lib/lead-cors";
 import { flushLeadOutbox } from "@/lib/lead-outbox";
+import { reportLeadToMeta } from "@/lib/meta-lead";
 import { googleCalendarUrl, nextSessionLabel } from "@/lib/lead-calendar";
 
 const MAX_BODY_BYTES = 10_000;
@@ -74,6 +75,13 @@ export async function POST(request: Request) {
         : Promise.resolve(),
       result.leadId ? flushLeadOutbox({ leadId: result.leadId }) : Promise.resolve(),
       flushLeadOutbox({ limit: 5 }),
+      // One server-side Lead per qualified RSVP (Central Ohio homeowner). A
+      // failure is logged and retried by the scheduler; it never affects the RSVP.
+      form?.metaServerLead && result.leadId && result.homeownerStatus === "owner_central_ohio"
+        ? reportLeadToMeta({ id: result.leadId, email: result.email, ip, userAgent }).catch((err) =>
+            console.error("Meta Lead report failed:", err)
+          )
+        : Promise.resolve(),
     ]);
 
     // leadId is the visitor's own opaque id; the step 2 page uses it (instead

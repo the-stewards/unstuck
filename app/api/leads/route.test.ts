@@ -18,6 +18,9 @@ vi.mock("@/lib/notify", () => ({
 const flushMock = vi.fn();
 vi.mock("@/lib/lead-outbox", () => ({ flushLeadOutbox: (...a: unknown[]) => flushMock(...a) }));
 
+const metaMock = vi.fn();
+vi.mock("@/lib/meta-lead", () => ({ reportLeadToMeta: (...a: unknown[]) => metaMock(...a) }));
+
 import { POST, OPTIONS } from "@/app/api/leads/route";
 
 import { LEAD_FORMS } from "@/lib/lead-forms";
@@ -58,6 +61,8 @@ describe("POST /api/leads", () => {
     flushMock.mockReset();
     existingLeadMock.mockReset();
     existingLeadMock.mockResolvedValue({ data: null });
+    metaMock.mockReset();
+    metaMock.mockResolvedValue(undefined);
     flushMock.mockResolvedValue({ sent: 1, failed: 0, skipped: false });
     emailMock.mockResolvedValue(undefined);
     happyRpc();
@@ -210,6 +215,34 @@ describe("POST /api/leads", () => {
     expect(await res.json()).toEqual({ ok: true, leadId: "existing-lead-id" });
     expect(emailMock).not.toHaveBeenCalled();
     expect(flushMock).not.toHaveBeenCalled();
+  });
+
+  it("reports exactly one Meta Lead for a qualified (Central Ohio homeowner) RSVP, keyed by the lead id", async () => {
+    const res = await POST(req({ ...valid, homeowner_status: "owner_central_ohio" }));
+    expect(res.status).toBe(200);
+    expect(metaMock).toHaveBeenCalledTimes(1);
+    expect(metaMock).toHaveBeenCalledWith({ id: "lead-uuid-1", email: "jane@example.com", ip: "1.2.3.4", userAgent: "vitest" });
+  });
+
+  it.each(["renter", "outside_area", undefined])("sends no Meta Lead for homeowner_status=%s", async (status) => {
+    await POST(req({ ...valid, ...(status ? { homeowner_status: status } : {}) }));
+    expect(metaMock).not.toHaveBeenCalled();
+  });
+
+  it("sends no second Meta Lead when the same person RSVPs again for the same session", async () => {
+    rpcWith({ data: null, error: { code: "23505", message: "dup" } });
+    existingLeadMock.mockResolvedValue({ data: { id: "existing-lead-id" } });
+    const res = await POST(req({ ...valid, homeowner_status: "owner_central_ohio" }));
+    expect(res.status).toBe(200);
+    expect(metaMock).not.toHaveBeenCalled();
+  });
+
+  it("a Meta failure never fails the RSVP", async () => {
+    metaMock.mockRejectedValue(new Error("meta down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await POST(req({ ...valid, homeowner_status: "owner_central_ohio" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, leadId: "lead-uuid-1" });
   });
 
   it("returns 429 when over the rate limit, without inserting", async () => {

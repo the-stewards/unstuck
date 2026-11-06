@@ -38,6 +38,7 @@ export type SubmitLeadResult =
       email: string;
       firstName: string;
       formKey: string;
+      homeownerStatus: string | null;
       // True when this email already had an RSVP for the same session: the
       // visitor just continues the flow, and no second email/Zap delivery is sent.
       duplicate?: boolean;
@@ -127,6 +128,7 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
           email: lead.email.toLowerCase(),
           firstName: lead.firstName,
           formKey: formConfig.key,
+          homeownerStatus: lead.homeowner_status ?? null,
           duplicate: true,
         };
       }
@@ -142,6 +144,7 @@ export async function submitLead(body: unknown, ctx: SubmitLeadContext): Promise
     email: lead.email.toLowerCase(),
     firstName: lead.firstName,
     formKey: formConfig.key,
+    homeownerStatus: lead.homeowner_status ?? null,
   };
 }
 

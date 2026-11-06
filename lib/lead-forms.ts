@@ -68,6 +68,12 @@ export interface LeadFormConfig {
   // soon as the RSVP saves (needs the host page to load the pixel). Turn on only
   // together with removing the Lead call from the thank-you page.
   fireLeadOnRegister?: boolean;
+  // Server-side Lead to the Meta Conversions API (UNSTUCK dataset) when a
+  // qualified (Central Ohio homeowner) RSVP is saved. Needs META_DATASET_ID and
+  // META_CAPI_TOKEN; without them nothing is sent. Uses the lead id as the event
+  // id, the same id the browser Lead uses, so the two de-duplicate while both
+  // are on. When this is live, turn fireLeadOnRegister off.
+  metaServerLead?: boolean;
   // Public RSVP landing page; the post-session email sends people back here to
   // grab a seat for the next cycle.
   rsvpPageUrl?: string;
@@ -143,6 +149,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
     },
     registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
     fireLeadOnRegister: true,
+    metaServerLead: true,
     rsvpPageUrl: "https://www.stewards.loan/unstuck",
   },
 };
