@@ -1,5 +1,9 @@
 <!--
 DRAFT — NOT LEGAL ADVICE. Written by an AI assistant, not an attorney.
+UPDATED Nov 5, 2026 (Meta Conversions API / Pixel disclosure in Sections 2, 4, 6, 7; new effective date).
+The Meta wording needs attorney / Ruoff compliance review. Also still open: this policy
+covers the course product; the free-session RSVP form (name, phone, SMS consent) is not
+described here yet.
 Before this goes live on unstuck.stewards.loan:
   1. Confirm the effective date (August 16, 2025) is actually correct before
      publishing.
@@ -15,7 +19,7 @@ Before this goes live on unstuck.stewards.loan:
 
 # Privacy Policy
 
-**Effective date: August 16, 2025**
+**Effective date: November 5, 2026**
 
 This Privacy Policy explains how Human to Human LLC ("Company," "we," "us," "our") collects, uses, discloses, and protects information in connection with UNSTUCK, our digital course product at unstuck.stewards.loan (the "Service").
 
@@ -43,7 +47,7 @@ We use the information above to:
 - Maintain the security and integrity of the Service
 - Comply with tax, accounting, and legal obligations related to your purchase
 
-We do not sell your personal information, and we do not use it for third-party advertising.
+We do not sell your personal information. When you register for a UNSTUCK session, we use Meta's advertising measurement tools to report that a sign-up happened, so we can tell which ads work. What is shared is described in Sections 4 and 7.
 
 ## 3. Legal Basis for Processing (GDPR)
 
@@ -51,7 +55,7 @@ If you are located in the European Economic Area or United Kingdom, our legal ba
 
 ## 4. How We Share Information
 
-We share information only with the service providers that operate the Service on our behalf, each acting as our data processor:
+We share information with the service providers that operate the Service on our behalf, each acting as our data processor, and with Meta for advertising measurement, as listed below:
 
 | Provider | Purpose |
 |---|---|
@@ -61,8 +65,9 @@ We share information only with the service providers that operate the Service on
 | Dubb | Video hosting for course content |
 | Calendly | Call scheduling (only if you choose to book a call) |
 | Vercel | Application hosting and server logs |
+| Meta Platforms (Facebook and Instagram) | Advertising measurement. When you register for a session, we send Meta a one-way hashed version of your email address plus your IP address and browser type, so Meta can match the sign-up to an ad. We send no financial, loan, rate, income, or property information. |
 
-We do not sell, rent, or trade your personal information to third parties for their own marketing purposes. We may disclose information if required by law, subpoena, or other legal process, or to protect the rights, property, or safety of the Company or others.
+Other than the advertising measurement described above, we do not sell, rent, or trade your personal information to third parties for their own marketing purposes. We may disclose information if required by law, subpoena, or other legal process, or to protect the rights, property, or safety of the Company or others.
 
 ## 5. Data Retention
 
@@ -84,11 +89,11 @@ Regardless of your location, you may contact us at **ryan.miracle@ruoff.com** to
 
 **How deletion works in practice:** when you request deletion, we will remove your student account, login credentials, and course-progress records within 30 days. We will retain the underlying transaction record (email, purchase date, amount) only as required for tax/accounting law, per Section 5 — this is the one category we cannot delete on request, since we're legally required to keep it.
 
-If you are a California resident, you have equivalent rights under the CCPA/CPRA, including the right to know what personal information is collected and the right to non-discrimination for exercising your privacy rights. We do not sell personal information, so there is nothing to opt out of in that respect.
+If you are a California resident, you have equivalent rights under the CCPA/CPRA, including the right to know what personal information is collected and the right to non-discrimination for exercising your privacy rights. We do not sell personal information for money. Sharing limited information with Meta for advertising measurement may count as a "sale" or "sharing" under some state laws; you can opt out by emailing us at the address above or by changing your ad settings with Meta.
 
 ## 7. Cookies and Session Data
 
-We use essential cookies only, required to keep you logged in (managed by Supabase Auth) and, if you visit our embedded checkout widget, to process your purchase (managed by Stripe). We do not use third-party advertising or cross-site tracking cookies. Embedded third-party content (such as Dubb video players or the Calendly booking widget) may set their own cookies under their own privacy policies, which we do not control.
+We use essential cookies only, required to keep you logged in (managed by Supabase Auth) and, if you visit our embedded checkout widget, to process your purchase (managed by Stripe). Our marketing pages on stewards.loan, where you register, use the Meta Pixel, which may set cookies in your browser to measure ads, and when you register we also send a sign-up event to Meta from our servers (see Section 4). You can limit ad tracking in your Facebook and Instagram ad settings and in your browser. The UNSTUCK course site itself sets no advertising cookies. Embedded third-party content (such as Dubb video players or the Calendly booking widget) may set their own cookies under their own privacy policies, which we do not control.
 
 ## 8. Children's Privacy
 

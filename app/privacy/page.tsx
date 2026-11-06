@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Privacy Policy — UNSTUCK" };
 // this page is what actually ships. Update both together.
 export default function PrivacyPage() {
   return (
-    <LegalDoc title="Privacy" titleOrange="Policy" effectiveDate="August 16, 2025">
+    <LegalDoc title="Privacy" titleOrange="Policy" effectiveDate="November 5, 2026">
       <p>
         This Privacy Policy explains how Human to Human LLC (&quot;Company,&quot; &quot;we,&quot;
         &quot;us,&quot; &quot;our&quot;) collects, uses, discloses, and protects information in
@@ -63,8 +63,9 @@ export default function PrivacyPage() {
           <li>Comply with tax, accounting, and legal obligations related to your purchase</li>
         </ul>
         <p className="mt-3">
-          We do not sell your personal information, and we do not use it for third-party
-          advertising.
+          We do not sell your personal information. When you register for a UNSTUCK session, we use
+          Meta&apos;s advertising measurement tools to report that a sign-up happened, so we can
+          tell which ads work. What is shared is described in Sections 4 and 7.
         </p>
       </div>
 
@@ -82,8 +83,9 @@ export default function PrivacyPage() {
       <div>
         <h2>4. How We Share Information</h2>
         <p className="mt-2">
-          We share information only with the service providers that operate the Service on our
-          behalf, each acting as our data processor:
+          We share information with the service providers that operate the Service on our behalf,
+          each acting as our data processor, and with Meta for advertising measurement, as listed
+          below:
         </p>
         <table className="mt-3">
           <thead>
@@ -117,11 +119,21 @@ export default function PrivacyPage() {
               <td>Vercel</td>
               <td>Application hosting and server logs</td>
             </tr>
+            <tr>
+              <td>Meta Platforms (Facebook and Instagram)</td>
+              <td>
+                Advertising measurement. When you register for a session, we send Meta a one-way
+                hashed version of your email address plus your IP address and browser type, so Meta
+                can match the sign-up to an ad. We send no financial, loan, rate, income, or
+                property information.
+              </td>
+            </tr>
           </tbody>
         </table>
         <p className="mt-3">
-          We do not sell, rent, or trade your personal information to third parties for their own
-          marketing purposes. We may disclose information if required by law, subpoena, or other
+          Other than the advertising measurement described above, we do not sell, rent, or trade
+          your personal information to third parties for their own marketing purposes. We may
+          disclose information if required by law, subpoena, or other
           legal process, or to protect the rights, property, or safety of the Company or others.
         </p>
       </div>
@@ -190,7 +202,9 @@ export default function PrivacyPage() {
           If you are a California resident, you have equivalent rights under the CCPA/CPRA,
           including the right to know what personal information is collected and the right to
           non-discrimination for exercising your privacy rights. We do not sell personal
-          information, so there is nothing to opt out of in that respect.
+          information for money. Sharing limited information with Meta for advertising measurement
+          may count as a &quot;sale&quot; or &quot;sharing&quot; under some state laws; you can opt
+          out by emailing us at the address above or by changing your ad settings with Meta.
         </p>
       </div>
 
@@ -199,8 +213,11 @@ export default function PrivacyPage() {
         <p className="mt-2">
           We use essential cookies only, required to keep you logged in (managed by Supabase Auth)
           and, if you visit our embedded checkout widget, to process your purchase (managed by
-          Stripe). We do not use third-party advertising or cross-site tracking cookies. Embedded
-          third-party content (such as Dubb video players or the Calendly booking widget) may set
+          Stripe). Our marketing pages on stewards.loan, where you register, use the Meta Pixel,
+          which may set cookies in your browser to measure ads, and when you register we also send
+          a sign-up event to Meta from our servers (see Section 4). You can limit ad tracking in
+          your Facebook and Instagram ad settings and in your browser. The UNSTUCK course site
+          itself sets no advertising cookies. Embedded third-party content (such as Dubb video players or the Calendly booking widget) may set
           their own cookies under their own privacy policies, which we do not control.
         </p>
       </div>
