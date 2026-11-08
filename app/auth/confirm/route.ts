@@ -1,5 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { clientIp } from "@/lib/client-ip";
+import { reportFirstVerifiedSignIn } from "@/lib/meta-lead";
 
 // Real magic-link emails (sent via signInWithOtp from a Server Action) use
 // the PKCE flow: Supabase's own verify redirect lands here with ?code=...,
@@ -27,8 +29,22 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // The session was just confirmed by an emailed link: report this person to
+      // Meta once (and record the sign-in + channel). Runs after the redirect is
+      // sent, so a slow or failing Meta call can never delay or break sign-in.
+      const user = data?.user ?? data?.session?.user;
+      if (user?.email) {
+        const signIn = {
+          userId: user.id,
+          email: user.email,
+          signupRef: user.user_metadata?.signup_ref,
+          ip: clientIp(request.headers),
+          userAgent: request.headers.get("user-agent"),
+        };
+        after(() => reportFirstVerifiedSignIn(signIn));
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

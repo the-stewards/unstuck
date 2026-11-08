@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { recordVerifiedSignIn } from "@/app/actions/signin";
 
 // This Supabase project's magic-link verify redirect uses the implicit flow
 // — tokens land in the URL fragment (#access_token=...&refresh_token=...),
@@ -27,6 +28,9 @@ export function AuthHashHandler() {
     supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
       window.history.replaceState(null, "", window.location.pathname);
       if (!error) {
+        // The emailed link just confirmed this session: let the server record it
+        // (and report the Lead once). Fire-and-forget; it must never affect login.
+        void recordVerifiedSignIn().catch(() => {});
         router.replace("/dashboard");
       }
     });

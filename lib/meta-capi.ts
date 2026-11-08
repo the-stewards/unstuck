@@ -34,6 +34,14 @@ export function hashEmail(email: string): string {
   return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
 }
 
+// One stable id per PERSON (not per RSVP or sign-in), so the webinar path and the
+// sign-in path produce the same event_id for the same email and Meta counts it
+// once even if both ever send. Derived from the hashed email, so it adds nothing
+// beyond what the event already carries.
+export function personEventId(email: string): string {
+  return "lead_" + hashEmail(email).slice(0, 32);
+}
+
 function sourceUrl(): string {
   try {
     return new URL(process.env.NEXT_PUBLIC_APP_URL || DEFAULT_ORIGIN).origin;

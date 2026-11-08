@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { buildLeadEvent, hashEmail, isMetaCapiConfigured, sendMetaLead } from "@/lib/meta-capi";
+import { buildLeadEvent, hashEmail, isMetaCapiConfigured, personEventId, sendMetaLead } from "@/lib/meta-capi";
 
 const fetchMock = vi.fn();
 
@@ -31,6 +31,13 @@ describe("Meta CAPI Lead", () => {
 
   it("hashes the lowercase, trimmed email with SHA-256 (hex)", () => {
     expect(hashEmail("  Jane@Example.com ")).toBe(createHash("sha256").update("jane@example.com").digest("hex"));
+  });
+
+  it("derives one stable event id per person, regardless of email case or spacing", () => {
+    expect(personEventId(" Jane@Example.com ")).toBe(personEventId("jane@example.com"));
+    expect(personEventId("jane@example.com")).toMatch(/^lead_[0-9a-f]{32}$/);
+    expect(personEventId("jane@example.com")).not.toBe(personEventId("joe@example.com"));
+    expect(personEventId("jane@example.com")).not.toContain("jane");
   });
 
   it("builds a Lead with only the allowed fields: no custom_data, bare origin, hashed email", () => {

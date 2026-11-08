@@ -1,9 +1,13 @@
 import { LoginForm } from "@/components/LoginForm";
 import { SUPPORT_EMAIL } from "@/lib/support";
+import { sanitizeRef } from "@/lib/ref";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
   const hasInvalidLinkError = params.error === "invalid_link";
+  // Channel the visitor came from (?ref=meta / ig), carried to the sign-up so it
+  // can be stored for reporting. Never sent to Meta.
+  const signupRef = sanitizeRef(params.ref);
 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
@@ -33,7 +37,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           </p>
         )}
 
-        <LoginForm />
+        <LoginForm signupRef={signupRef} />
       </div>
     </main>
   );

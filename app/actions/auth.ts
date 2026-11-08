@@ -4,10 +4,39 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkAccess } from "@/lib/access";
+import { sanitizeRef } from "@/lib/ref";
 
 export interface MagicLinkResult {
   success: boolean;
   error?: string;
+  // True when a real link was emailed (new signup); the person must open it.
+  emailed?: boolean;
+}
+
+// New signups: a real emailed link proves inbox ownership before an account is
+// confirmed. Off unless ALLOW_SIGNUP_LINKS=true, so by default an email with no
+// access grant is still turned away exactly as before.
+function signupLinksEnabled(): boolean {
+  return process.env.ALLOW_SIGNUP_LINKS === "true";
+}
+
+async function sendSignupLink(email: string, ref: string | null): Promise<MagicLinkResult> {
+  const origin = new URL(process.env.NEXT_PUBLIC_APP_URL || "https://unstuck.stewards.loan").origin;
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${origin}/auth/confirm?next=/dashboard`,
+      // Stored on the new user so the channel survives opening the link in a
+      // different browser. Reporting only: it is never sent to Meta.
+      ...(ref ? { data: { signup_ref: ref } } : {}),
+    },
+  });
+  if (error) {
+    return { success: false, error: "We couldn't send that link. Try again in a moment." };
+  }
+  return { success: true, emailed: true };
 }
 
 // Instant login, no email round-trip: generates a magic-link token via the
@@ -30,6 +59,9 @@ export async function requestMagicLink(formData: FormData): Promise<MagicLinkRes
   try {
     const hasAccess = await checkAccess(email);
     if (!hasAccess) {
+      if (signupLinksEnabled()) {
+        return await sendSignupLink(email, sanitizeRef(formData.get("ref")));
+      }
       return { success: false, error: "We don't have access on file for that email." };
     }
 

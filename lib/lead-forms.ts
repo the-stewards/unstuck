@@ -148,7 +148,7 @@ export const LEAD_FORMS: Record<string, LeadFormConfig> = {
       ],
     },
     registeredPageUrl: "https://www.stewards.loan/unstuck.registered",
-    fireLeadOnRegister: true,
+    fireLeadOnRegister: false, // browser Lead off: Meta Leads are sent server-side (metaServerLead + first verified sign-in)
     metaServerLead: true,
     rsvpPageUrl: "https://www.stewards.loan/unstuck",
   },
