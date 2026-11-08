@@ -17,7 +17,7 @@
 export type CallStatus = "not_booked" | "booked" | "completed";
 export type ProgressStatus = "not_started" | "in_progress" | "complete";
 export type ResourceType = "checklist" | "toolkit" | "guide" | "script";
-export type AccessSource = "stripe_purchase" | "manual_comp";
+export type AccessSource = "stripe_purchase" | "manual_comp" | "free_signup";
 export type BonusStatus = "locked_missed" | "reactivated" | "included_at_purchase";
 export type ContentStatus = "published" | "coming_soon";
 

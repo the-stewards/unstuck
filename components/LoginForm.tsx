@@ -55,7 +55,7 @@ export function LoginForm({ signupRef = null }: { signupRef?: string | null }) {
         disabled={isPending}
         className="bg-accent px-4 py-3 font-heading text-base font-bold uppercase tracking-wide text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {isPending ? "Sending…" : "Email Me My Link"}
+        {isPending ? "One moment…" : "Get Started"}
       </button>
       {error && (
         <p className="font-body text-base text-red-700">
